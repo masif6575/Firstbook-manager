@@ -1,0 +1,2372 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Firstbook — Manager Panel</title>
+<link rel="manifest" href="/manifest-manager.json">
+<meta name="theme-color" content="#00E676">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="FB Manager">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --green:#00E676;--green-dark:#00B85C;--green-glow:rgba(0,230,118,0.1);
+  --blue:#3498db;--blue-glow:rgba(52,152,219,0.1);--blue-dark:#1a4a6a;
+  --orange:#f39c12;--orange-glow:rgba(243,156,18,0.1);--orange-dark:#5a4200;
+  --black:#0A0A0A;--card:#141414;--card2:#1C1C1C;--border:#2A2A2A;
+  --text:#F0F0F0;--muted:#777;--red:#e74c3c;--red-bg:#1a0808;
+  --font-head:'Bebas Neue',sans-serif;--font:'DM Sans',sans-serif;
+}
+body{background:var(--black);color:var(--text);font-family:var(--font);min-height:100vh}
+
+/* LOGIN */
+#loginWrap{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:24px}
+.login-box{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:36px 32px;width:100%;max-width:380px}
+.login-logo{font-family:var(--font-head);font-size:36px;letter-spacing:1px;text-align:center;margin-bottom:4px}
+.login-logo em{color:#ccc;font-style:normal}.login-logo span{color:var(--green)}
+.login-sub{text-align:center;font-size:13px;color:var(--muted);margin-bottom:28px}
+.login-label{font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;display:block}
+.login-input{width:100%;background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:12px 16px;color:var(--text);font-size:15px;font-family:var(--font);outline:none;margin-bottom:16px;transition:border-color .2s}
+.login-input:focus{border-color:var(--green-dark)}
+.login-btn{width:100%;background:var(--green);color:#000;border:none;padding:13px;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;font-family:var(--font)}
+.login-btn:hover{background:var(--green-dark)}
+.login-err{color:var(--red);font-size:13px;text-align:center;margin-top:10px;display:none;background:var(--red-bg);padding:8px;border-radius:8px;border:1px solid #5a1a1a}
+
+/* LAYOUT */
+.layout{display:flex;min-height:100vh;display:none}
+.sidebar{width:220px;background:var(--card);border-right:1px solid var(--border);flex-shrink:0;position:fixed;top:0;left:0;bottom:0;z-index:10;display:flex;flex-direction:column}
+.main{margin-left:220px;flex:1;padding:28px 32px;max-width:calc(100vw - 220px)}
+.sb-logo{padding:22px 20px 14px;border-bottom:1px solid var(--border)}
+.sb-logo .logo{font-family:var(--font-head);font-size:28px;letter-spacing:1px}
+.sb-logo .logo em{color:#ccc;font-style:normal}.sb-logo .logo span{color:var(--green)}
+.sb-logo .admin-badge{font-size:11px;color:var(--muted);margin-top:2px;letter-spacing:1px;text-transform:uppercase}
+.sb-turf{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.sb-turf-emoji{width:42px;height:42px;border-radius:10px;background:var(--green-glow);border:1px solid var(--green-dark);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.sb-turf-name{font-family:var(--font-head);font-size:22px;font-weight:700;line-height:1.15;letter-spacing:.5px;color:var(--green)}
+.sb-turf-addr{font-size:11px;color:var(--muted);margin-top:2px}
+.sb-nav{padding:12px 0;flex:1}
+.nav-item{display:flex;align-items:center;gap:10px;padding:11px 20px;cursor:pointer;font-size:14px;font-weight:500;color:var(--muted);transition:all .2s;border-left:3px solid transparent}
+.nav-item:hover{color:var(--text);background:rgba(255,255,255,0.03)}
+.nav-item.active{color:var(--green);border-left-color:var(--green);background:var(--green-glow)}
+.nav-icon{font-size:18px;width:20px;text-align:center}
+.sb-footer{padding:16px 20px;border-top:1px solid var(--border)}
+.sb-footer a{font-size:12px;color:var(--muted);text-decoration:none;display:flex;align-items:center;gap:6px;transition:color .2s}
+.sb-footer a:hover{color:var(--green)}
+
+/* PAGES */
+.tab-page{display:none}.tab-page.active{display:block}
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px}
+.page-title{font-family:var(--font-head);font-size:28px;letter-spacing:1px}
+.page-sub{font-size:13px;color:var(--muted);margin-top:2px}
+.header-right{display:flex;align-items:center;gap:10px}
+
+/* STATS */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px}
+
+/* ══════════ ANALYTICS / PREMIUM CHARTS ══════════ */
+.chart-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:16px}
+.chart-card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px}
+.chart-title{font-family:var(--font-head);font-size:16px;letter-spacing:.5px;color:var(--text)}
+.chart-sub{font-size:11px;color:var(--muted);margin-top:2px}
+.chart-legend{display:flex;gap:14px;flex-wrap:wrap;font-size:11px;color:var(--muted)}
+.chart-legend span{display:inline-flex;align-items:center;gap:5px}
+.chart-legend i{width:9px;height:9px;border-radius:3px;display:inline-block}
+.analytics-grid{display:grid;grid-template-columns:2fr 1fr;gap:16px}
+.analytics-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:900px){.analytics-grid,.analytics-grid-2{grid-template-columns:1fr}}
+.range-toggle{display:flex;gap:6px}
+.range-btn{background:var(--card2);border:1px solid var(--border);color:var(--muted);padding:5px 12px;border-radius:7px;font-size:11px;font-weight:600;cursor:pointer;font-family:var(--font);transition:all .15s}
+.range-btn.active{background:var(--green-glow);border-color:var(--green-dark);color:var(--green)}
+.range-btn:hover:not(.active){border-color:var(--muted)}
+
+/* revenue trend chart (premium bars + shimmer + tooltip) */
+.rev-chart-wrap{position:relative;height:200px;padding-top:10px}
+.rev-bars{display:flex;align-items:flex-end;gap:6px;height:170px}
+.rev-bar-col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:6px;position:relative}
+.rev-bar{width:100%;max-width:34px;background:linear-gradient(180deg,var(--green) 0%,var(--green-dark) 100%);border-radius:5px 5px 0 0;transition:all .3s;position:relative;cursor:pointer}
+.rev-bar:hover{filter:brightness(1.15)}
+.rev-bar-tooltip{position:absolute;bottom:100%;left:50%;transform:translateX(-50%);background:#000;border:1px solid var(--green-dark);border-radius:6px;padding:5px 9px;font-size:11px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .15s;margin-bottom:6px;z-index:5}
+
+/* LINE GRAPH */
+.line-chart-wrap{position:relative;width:100%}
+.line-chart-svg{width:100%;height:190px;display:block;overflow:visible}
+.line-chart-point{cursor:pointer;transition:r .15s}
+.line-chart-point:hover{r:6}
+.line-chart-tooltip{position:absolute;background:#000;border:1px solid #1a4a6a;border-radius:7px;padding:6px 11px;font-size:11px;color:var(--text);white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .15s;transform:translate(-50%,-115%);z-index:10}
+.line-chart-tooltip.show{opacity:1}
+.line-chart-labels{display:flex;justify-content:space-between;margin-top:4px;padding:0 2px}
+.line-chart-label{font-size:10px;color:var(--muted)}
+.rev-bar-col:hover .rev-bar-tooltip{opacity:1}
+.rev-bar-label{font-size:10px;color:var(--muted);margin-top:4px;text-align:center}
+
+/* donut chart (pure CSS conic-gradient) */
+.donut-wrap{display:flex;align-items:center;gap:24px;flex-wrap:wrap;justify-content:center}
+.donut{width:150px;height:150px;border-radius:50%;flex-shrink:0;position:relative;display:flex;align-items:center;justify-content:center}
+.donut-hole{width:92px;height:92px;background:var(--card);border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.donut-hole-val{font-family:var(--font-head);font-size:22px;color:var(--text);letter-spacing:.5px}
+.donut-hole-lbl{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+.donut-legend{display:flex;flex-direction:column;gap:8px}
+.donut-legend-item{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text)}
+.donut-legend-dot{width:10px;height:10px;border-radius:3px;flex-shrink:0}
+.donut-legend-val{color:var(--muted);font-size:11px}
+
+/* heatmap (peak hours) */
+.heatmap-grid{display:grid;grid-template-columns:repeat(8,1fr);gap:4px}
+.heat-cell{aspect-ratio:1;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:9px;color:var(--muted);font-weight:600;cursor:pointer;transition:transform .1s;position:relative}
+.heat-cell:hover{transform:scale(1.1);z-index:2}
+.heat-cell-label{font-size:9px;color:var(--muted);text-align:center;margin-top:3px}
+
+/* mini KPI row inside analytics */
+.kpi-mini-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:16px}
+.kpi-mini{background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:12px 14px}
+.kpi-mini-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+.kpi-mini-val{font-family:var(--font-head);font-size:20px;color:var(--text);letter-spacing:.3px}
+.kpi-mini-val.green{color:var(--green)}
+.kpi-mini-val.orange{color:var(--orange)}
+.kpi-mini-delta{font-size:10px;margin-top:2px}
+.kpi-mini-delta.up{color:var(--green)}
+.kpi-mini-delta.down{color:var(--red)}
+
+.empty-chart{text-align:center;padding:40px 20px;color:var(--muted);font-size:12px}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px 20px}
+.stat-label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+.stat-value{font-family:var(--font-head);font-size:32px;letter-spacing:.5px;color:var(--text)}
+.stat-value.green{color:var(--green)}
+.stat-value.orange{color:var(--orange)}
+.stat-sub{font-size:12px;color:var(--muted);margin-top:4px}
+
+/* CARD / TABLE */
+.card-box{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:20px}
+.card-box .card-head{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:1px solid var(--border)}
+.card-head-title{font-size:14px;font-weight:600}
+.table-wrap{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.table-head{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:1px solid var(--border)}
+.table-head-title{font-size:14px;font-weight:600}
+.table-count{font-size:12px;color:var(--muted)}
+table{width:100%;border-collapse:collapse}
+thead th{padding:11px 16px;text-align:left;font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border);white-space:nowrap}
+tbody tr{border-bottom:1px solid var(--border);transition:background .15s}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:rgba(255,255,255,0.02)}
+tbody td{padding:13px 16px;font-size:13px;vertical-align:middle}
+.td-muted{color:var(--muted);font-size:12px}
+.ref-code{font-family:var(--font-head);font-size:15px;color:var(--green);letter-spacing:1px}
+
+/* BADGES */
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.3px}
+.badge-confirmed{background:var(--green-glow);color:var(--green);border:1px solid var(--green-dark)}
+.badge-cancelled{background:var(--red-bg);color:var(--red);border:1px solid #5a1a1a}
+.badge-manual{background:#0a1a2a;color:var(--blue);border:1px solid var(--blue-dark)}
+.badge-pending{background:#1a1400;color:var(--orange);border:1px solid var(--orange-dark)}
+.badge-bkash{background:#3a0020;color:#ff6eb4;border:1px solid #7a1040}
+.badge-due{background:var(--red-bg);color:var(--red);border:1px solid #5a1a1a}
+.badge-paid{background:var(--green-glow);color:var(--green);border:1px solid var(--green-dark)}
+
+/* BUTTONS */
+.btn{padding:8px 18px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font);transition:all .2s;border:none;letter-spacing:.3px}
+.btn-green{background:var(--green);color:#000}
+.btn-green:hover{background:var(--green-dark)}
+.btn-outline{background:transparent;border:1px solid var(--border);color:var(--muted)}
+.lang-opt-btn{flex:1;background:var(--card2);border:1px solid var(--border);color:var(--text);padding:14px;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;font-family:var(--font);transition:all .15s}
+.lang-opt-btn:hover{border-color:var(--green-dark)}
+.lang-opt-btn.active{background:var(--green-glow);border-color:var(--green-dark);color:var(--green)}
+.btn-outline:hover{border-color:var(--green-dark);color:var(--green)}
+.btn-red{background:transparent;border:1px solid #c0392b;color:var(--red);font-size:12px;padding:5px 12px}
+.btn-red:hover{background:var(--red-bg)}
+.btn-blue{background:transparent;border:1px solid #2980b9;color:var(--blue);font-size:12px;padding:5px 12px}
+.btn-blue:hover{background:#0a1a2a}
+.btn-sm{padding:5px 12px;font-size:12px}
+.btn-green-sm{background:var(--green-glow);border:1px solid var(--green-dark);color:var(--green);font-size:12px;padding:5px 12px}
+.btn-green-sm:hover{background:var(--green-dark);color:#000}
+.btn-disabled{background:#2a2a2a;color:#555;cursor:not-allowed}
+
+/* FILTERS / FORMS */
+.filters{display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap;align-items:center}
+.filter-input{background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:8px 14px;color:var(--text);font-size:13px;font-family:var(--font);outline:none;transition:border-color .2s}
+.filter-input:focus{border-color:var(--green-dark)}
+.filter-select{background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:8px 14px;color:var(--text);font-size:13px;font-family:var(--font);outline:none;cursor:pointer}
+.filter-select option{background:#1c1c1c}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.form-group{margin-bottom:14px}
+.form-label{font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;display:block}
+.form-input{width:100%;background:var(--card2);border:1px solid var(--border);border-radius:9px;padding:11px 14px;color:var(--text);font-size:14px;font-family:var(--font);outline:none;transition:border-color .2s}
+input[type="date"],input[type="time"]{color-scheme:dark}
+.form-input:focus{border-color:var(--green-dark)}
+.form-select{width:100%;background:var(--card2);border:1px solid var(--border);border-radius:9px;padding:11px 14px;color:var(--text);font-size:14px;font-family:var(--font);outline:none;cursor:pointer}
+.form-select option{background:#1c1c1c}
+
+/* MANUAL BOOKING SLOTS */
+.note-box{background:var(--green-glow);border:1px solid var(--green-dark);border-radius:10px;padding:12px 16px;font-size:13px;color:var(--green);margin-bottom:20px;line-height:1.6}
+.slot-label{font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px}
+.slot-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:20px}
+.slot-btn{padding:10px 4px;text-align:center;background:var(--card2);border:1px solid var(--border);border-radius:8px;cursor:pointer;font-size:12px;font-weight:500;color:var(--text);transition:all .2s}
+.slot-btn:hover:not(.slot-booked):not(.slot-past){border-color:var(--green-dark);color:var(--green)}
+.slot-btn.slot-selected{background:var(--green);color:#000;border-color:var(--green);font-weight:700}
+.slot-btn.slot-booked{background:#180808;border-color:#2a1515;color:#444;cursor:not-allowed;font-size:11px}
+.slot-btn.slot-past{color:#333;cursor:not-allowed;border-color:#1a1a1a}
+.slot-loading{color:var(--muted);font-size:13px;padding:16px 0;grid-column:1/-1;text-align:center}
+.block-btn{width:100%;background:var(--green);color:#000;border:none;padding:13px;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;font-family:var(--font);margin-top:8px}
+.block-btn:hover{background:var(--green-dark)}
+.block-btn:disabled{background:#2a2a2a;color:#555;cursor:not-allowed}
+
+/* TODAY'S SCHEDULE */
+.date-nav{display:flex;align-items:center;gap:10px;background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:8px 14px;width:fit-content;margin-bottom:18px}
+.date-nav-btn{background:transparent;border:none;color:var(--muted);cursor:pointer;font-size:17px;padding:2px 8px;font-family:var(--font);border-radius:6px;transition:all .15s}
+.date-nav-btn:hover{color:var(--green);background:rgba(0,230,118,.08)}
+.date-nav .date-display{font-size:14px;font-weight:600;color:var(--text);min-width:140px;text-align:center}
+.date-nav .date-input{background:transparent;border:none;color:var(--muted);font-size:12px;font-family:var(--font);outline:none;cursor:pointer}
+.legend{display:flex;gap:18px;margin-bottom:18px;flex-wrap:wrap}
+.legend-item{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--muted)}
+.legend-dot{width:13px;height:13px;border-radius:4px;border:1px solid var(--border)}
+.legend-dot.av{background:var(--card2)}
+.legend-dot.on{background:var(--green-glow);border-color:var(--green-dark)}
+.legend-dot.mn{background:#0a1a2a;border-color:var(--blue-dark)}
+.legend-dot.pd{background:#1a1400;border-color:var(--orange-dark)}
+.legend-dot.ps{background:#161616;border-color:#1a1a1a;opacity:.5}
+.sched-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.sched-slot{padding:16px 8px;text-align:center;border-radius:10px;border:1px solid var(--border);background:var(--card2);transition:all .15s}
+.sched-slot .time{font-size:13px;font-weight:700;margin-bottom:5px}
+.sched-slot .status{font-size:11px;color:var(--muted)}
+.sched-slot.online{background:var(--green-glow);border-color:var(--green-dark);cursor:pointer}
+.sched-slot.online .time{color:var(--green)}
+.sched-slot.online .status{color:var(--green)}
+.sched-slot.manual{background:#0a1a2a;border-color:var(--blue-dark);cursor:pointer}
+.sched-slot.manual .time{color:var(--blue)}
+.sched-slot.manual .status{color:var(--blue)}
+.sched-slot.pending{background:#1a1400;border-color:var(--orange-dark);cursor:pointer}
+.sched-slot.pending .time{color:var(--orange)}
+.sched-slot.pending .status{color:var(--orange)}
+.sched-slot.past{opacity:.4}
+.sched-slot:hover.online,.sched-slot:hover.manual,.sched-slot:hover.pending{transform:translateY(-2px)}
+
+/* CHART */
+.chart-wrap{display:flex;align-items:flex-end;gap:12px;height:140px;padding:10px 0 0}
+.chart-bar-col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%}
+.chart-val{font-size:11px;color:var(--green);font-weight:700;margin-bottom:6px;white-space:nowrap}
+.chart-bar{width:100%;max-width:38px;background:var(--green);border-radius:5px 5px 0 0;min-height:3px;transition:height .5s ease}
+.chart-bar.today-bar{background:var(--green-dark);box-shadow:0 0 0 2px var(--green) inset}
+.chart-label{font-size:11px;color:var(--muted);margin-top:8px;text-align:center}
+
+/* INFO ROWS */
+.info-row{display:flex;justify-content:space-between;padding:11px 0;border-bottom:1px solid var(--border);font-size:13px}
+.info-row:last-child{border-bottom:none}
+.info-row .il{color:var(--muted)}.info-row .iv{font-weight:600}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:100;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s}
+.modal-overlay.open{opacity:1;pointer-events:all}
+.modal{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:28px;width:460px;max-width:92vw;max-height:90vh;overflow-y:auto}
+.modal-title{font-family:var(--font-head);font-size:22px;letter-spacing:.5px;margin-bottom:20px}
+.modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:20px;flex-wrap:wrap}
+
+.spinner{display:inline-block;width:13px;height:13px;border:2px solid var(--border);border-top-color:var(--green);border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:5px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.empty-state{text-align:center;padding:40px 20px;color:var(--muted);font-size:14px}
+.toast{position:fixed;bottom:24px;right:24px;background:var(--card);border:1px solid var(--border);color:var(--text);padding:12px 20px;border-radius:10px;font-size:13px;z-index:999;opacity:0;transition:all .3s;transform:translateY(8px);pointer-events:none}
+.toast.show{opacity:1;transform:translateY(0)}
+.toast.success{border-color:var(--green-dark);color:var(--green)}
+.toast.error{border-color:#c0392b;color:var(--red)}
+
+/* NOTIFICATION BELL */
+.notif-bell-wrap{position:relative;display:inline-flex}
+.notif-bell{background:transparent;border:1px solid var(--border);color:var(--muted);width:36px;height:36px;border-radius:8px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0}
+.notif-bell:hover{border-color:var(--green-dark);color:var(--green)}
+.notif-bell.active{border-color:var(--green-dark);color:var(--green);background:var(--green-glow)}
+.notif-badge{position:absolute;top:-6px;right:-6px;background:var(--red);color:#fff;font-size:10px;font-weight:700;width:18px;height:18px;border-radius:50%;display:none;align-items:center;justify-content:center;font-family:var(--font)}
+.notif-badge.show{display:flex}
+
+/* NOTIFICATION PANEL */
+.notif-panel{position:fixed;top:0;right:0;bottom:0;width:340px;background:var(--card);border-left:1px solid var(--border);z-index:200;display:flex;flex-direction:column;transform:translateX(100%);transition:transform .3s ease;box-shadow:-8px 0 32px rgba(0,0,0,.5)}
+.notif-panel.open{transform:translateX(0)}
+.notif-panel-head{display:flex;align-items:center;justify-content:space-between;padding:18px 20px;border-bottom:1px solid var(--border);flex-shrink:0}
+.notif-panel-title{font-family:var(--font-head);font-size:20px;letter-spacing:.5px}
+.notif-close{background:transparent;border:none;color:var(--muted);cursor:pointer;font-size:20px;padding:4px;border-radius:6px;transition:color .2s}
+.notif-close:hover{color:var(--text)}
+.notif-controls{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;border-bottom:1px solid var(--border);flex-shrink:0}
+.notif-toggle-wrap{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted)}
+.notif-toggle{position:relative;width:38px;height:20px;cursor:pointer;display:inline-block;flex-shrink:0}
+.notif-toggle input{opacity:0;width:0;height:0;position:absolute}
+.notif-slider{position:absolute;inset:0;background:#333;border-radius:20px;transition:.3s}
+.notif-slider:before{content:'';position:absolute;width:14px;height:14px;background:#666;border-radius:50%;top:3px;left:3px;transition:.3s}
+.notif-toggle input:checked + .notif-slider{background:var(--green-dark)}
+.notif-toggle input:checked + .notif-slider:before{background:#000;left:21px}
+.notif-list{flex:1;overflow-y:auto;padding:8px 0}
+.notif-item{padding:14px 20px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .15s;position:relative}
+.notif-item:hover{background:rgba(255,255,255,0.03)}
+.notif-item.unread{background:rgba(0,230,118,0.04)}
+.notif-item.unread::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--green);border-radius:0 2px 2px 0}
+.notif-item-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
+.notif-item-title{font-size:13px;font-weight:600;color:var(--text)}
+.notif-item-time{font-size:11px;color:var(--muted)}
+.notif-item-body{font-size:12px;color:var(--muted);line-height:1.5}
+.notif-item-ref{font-family:var(--font-head);font-size:13px;color:var(--green);letter-spacing:.5px;margin-top:4px}
+.notif-empty{text-align:center;padding:48px 20px;color:var(--muted);font-size:13px}
+.notif-footer{padding:12px 20px;border-top:1px solid var(--border);flex-shrink:0;display:flex;gap:8px}
+
+/* NEW BOOKING POPUP TOAST */
+.notif-popup{position:fixed;bottom:80px;right:24px;background:var(--card);border:1px solid var(--green-dark);border-radius:12px;padding:14px 18px;z-index:998;width:300px;box-shadow:0 8px 32px rgba(0,0,0,.5);transform:translateY(20px);opacity:0;transition:all .35s;pointer-events:none}
+.notif-popup.show{transform:translateY(0);opacity:1;pointer-events:all}
+.notif-popup-head{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.notif-popup-icon{width:28px;height:28px;border-radius:7px;background:var(--green);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.notif-popup-title{font-size:13px;font-weight:700;color:var(--green)}
+.notif-popup-body{font-size:12px;color:var(--muted);line-height:1.5}
+.notif-popup-ref{font-family:var(--font-head);font-size:13px;color:var(--green);letter-spacing:.5px;margin-top:4px}
+.notif-popup-close{position:absolute;top:8px;right:10px;background:transparent;border:none;color:var(--muted);cursor:pointer;font-size:16px}
+
+@media(max-width:900px){
+  .sidebar{display:none}
+  .main{margin-left:0;max-width:100vw;padding:18px}
+  .stats-grid{grid-template-columns:1fr 1fr}
+  .form-row{grid-template-columns:1fr}
+  .slot-grid,.sched-grid{grid-template-columns:repeat(2,1fr)}
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginWrap">
+  <div class="login-box">
+    <div class="login-logo"><em>First</em><span>book</span></div>
+    <div class="login-sub">Turf Manager Portal</div>
+    <label class="login-label">Manager Password</label>
+    <input type="password" class="login-input" id="passInput" placeholder="Password দাও" onkeydown="if(event.key==='Enter')doLogin()">
+    <button class="login-btn" id="mgrLoginBtn" onclick="doLogin()">Login →</button>
+    <div class="login-err" id="loginErr">❌ ভুল Password! আবার চেষ্টা করো।</div>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div class="layout" id="appLayout">
+  <div class="sidebar">
+    <div class="sb-logo">
+      <div class="logo"><em>First</em><span>book</span></div>
+      <div class="admin-badge">Manager Panel</div>
+    </div>
+    <div class="sb-turf">
+      <div class="sb-turf-emoji" id="sbTurfEmoji">⚽</div>
+      <div>
+        <div class="sb-turf-name" id="sbTurfName">—</div>
+        <div class="sb-turf-addr" id="sbTurfAddr">—</div>
+      </div>
+    </div>
+    <nav class="sb-nav">
+      <div class="nav-item active" onclick="showTab('dashboard',this)"><span class="nav-icon">📊</span> <span data-i18n="nav.dashboard">ড্যাশবোর্ড</span></div>
+      <div class="nav-item" onclick="showTab('schedule',this)"><span class="nav-icon">📅</span> <span data-i18n="nav.schedule">আজকের শিডিউল</span></div>
+      <div class="nav-item" onclick="showTab('turfmgmt',this)"><span class="nav-icon">🏟️</span> <span data-i18n="nav.turfmgmt">Turf Management</span></div>
+      <div class="nav-item" onclick="showTab('pricing',this)"><span class="nav-icon">🏷️</span> <span data-i18n="nav.pricing">Pricing</span></div>
+      <div class="nav-item" id="navAnalytics" onclick="showTab('analytics',this)"><span class="nav-icon">📈</span> <span data-i18n="nav.analytics">Analytics</span></div>
+      <div class="nav-item" id="navManual" onclick="showTab('manual',this)"><span class="nav-icon">✏️</span> <span data-i18n="nav.manual">Manual Booking</span></div>
+      <div class="nav-item" id="navBookings" onclick="showTab('bookings',this)"><span class="nav-icon">📋</span> <span data-i18n="nav.bookings">All Bookings</span></div>
+      <div class="nav-item" onclick="showTab('info',this)"><span class="nav-icon">ℹ️</span> <span data-i18n="nav.info">Turf Info</span></div>
+      <div class="nav-item" onclick="showTab('settings',this)"><span class="nav-icon">⚙️</span> <span data-i18n="nav.settings">Settings</span></div>
+    </nav>
+    <div class="sb-footer">
+      <a href="index.html" target="_blank">🌐 Open Booking Site</a>
+      <div style="margin-top:10px">
+        <button onclick="doLogout()" style="background:transparent;border:1px solid #5a1a1a;color:var(--red);padding:6px 14px;border-radius:7px;cursor:pointer;font-size:12px;font-family:var(--font);width:100%">🔒 Logout</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="main">
+
+    <!-- DASHBOARD -->
+    <div class="tab-page active" id="tab-dashboard">
+      <div class="page-header">
+        <div><div class="page-title" data-i18n="page.dashboard">ড্যাশবোর্ড</div><div class="page-sub" id="dashSub">—</div></div>
+        <div class="header-right">
+          <div class="notif-bell-wrap">
+            <button class="notif-bell active" id="notifBell" onclick="toggleNotifPanel()" title="Notifications">🔔</button>
+            <div class="notif-badge" id="notifBadge">0</div>
+          </div>
+          <button class="btn btn-green" onclick="goManualToday()">✏️ Walk-in Booking</button>
+          <button class="btn btn-outline" onclick="loadAllBookings()">↻ Refresh</button>
+        </div>
+      </div>
+
+      <div class="stats-grid" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr))">
+        <div class="stat-card"><div class="stat-label" data-i18n="stat.todayBookings">আজকের বুকিং</div><div class="stat-value green" id="statTodayBookings">—</div><div class="stat-sub" id="statTodayDate"></div></div>
+        <div class="stat-card"><div class="stat-label" data-i18n="stat.todayRevenue">আজকের আয়</div><div class="stat-value green" id="statTodayRevenue">—</div><div class="stat-sub">Total amount</div></div>
+        <div class="stat-card"><div class="stat-label" data-i18n="stat.monthBookings">এই মাসের বুকিং</div><div class="stat-value" id="statMonthBookings">—</div><div class="stat-sub" id="statMonthLabel"></div></div>
+        <div class="stat-card"><div class="stat-label" data-i18n="stat.totalDue">মোট বকেয়া</div><div class="stat-value orange" id="statTotalDue">—</div><div class="stat-sub" id="statDueCount"></div></div>
+        <div class="stat-card" id="payoutCard" onclick="goToPayoutDetails()" style="cursor:pointer;transition:border-color .2s" onmouseover="this.style.borderColor='var(--green-dark)'" onmouseout="this.style.borderColor='var(--border)'">
+          <div class="stat-label" data-i18n="stat.payoutDue">Firstbook থেকে পাবে</div>
+          <div class="stat-value green" id="statPayoutDue">—</div>
+          <div class="stat-sub">বিস্তারিত দেখতে ক্লিক করো →</div>
+        </div>
+      </div>
+
+      <div class="chart-card">
+        <div class="chart-card-head">
+          <div>
+            <div class="chart-title">📈 Revenue Overview — Last 7 Days</div>
+            <div class="chart-sub">প্রতিদিনের মোট বুকিং value</div>
+          </div>
+          <button class="btn btn-outline btn-sm" onclick="goToAnalytics()">বিস্তারিত Analytics দেখো →</button>
+        </div>
+        <div id="weekChart"><div class="empty-chart"><span class="spinner"></span> Loading...</div></div>
+      </div>
+
+      <div class="table-wrap">
+        <div class="table-head"><div class="table-head-title">সাম্প্রতিক বুকিং</div><div class="table-count" id="recentCount"></div></div>
+        <div id="recentTable"><div class="empty-state"><span class="spinner"></span> Loading...</div></div>
+      </div>
+    </div>
+
+    <!-- TODAY'S SCHEDULE -->
+    <div class="tab-page" id="tab-schedule">
+      <div class="page-header">
+        <div><div class="page-title" data-i18n="page.schedule">শিডিউল</div></div>
+        <button class="btn btn-outline" onclick="renderSchedule()">↻ Refresh</button>
+      </div>
+
+      <div class="date-nav">
+        <button class="date-nav-btn" onclick="changeScheduleDate(-1)">‹</button>
+        <div class="date-display" id="schedDateLabel">—</div>
+        <button class="date-nav-btn" onclick="changeScheduleDate(1)">›</button>
+        <button class="date-nav-btn" onclick="setScheduleToday()" style="font-size:12px">আজ</button>
+        <input type="date" class="date-input" id="schedDateInput" onchange="onSchedDateInput()">
+      </div>
+
+      <div class="legend">
+        <div class="legend-item"><div class="legend-dot av"></div> Available</div>
+        <div class="legend-item"><div class="legend-dot on"></div> Online Booking</div>
+        <div class="legend-item"><div class="legend-dot mn"></div> Manual Block</div>
+        <div class="legend-item"><div class="legend-dot pd"></div> Pending</div>
+        <div class="legend-item"><div class="legend-dot ps"></div> Past</div>
+      </div>
+
+      <div class="sched-grid" id="schedGrid"><div class="empty-state"><span class="spinner"></span> Loading...</div></div>
+    </div>
+
+    <!-- TURF MANAGEMENT -->
+    <div class="tab-page" id="tab-turfmgmt">
+      <div class="page-header">
+        <div><div class="page-title">TURF MANAGEMENT</div></div>
+      </div>
+
+      <!-- EDIT TURF -->
+      <div class="card-box">
+        <div class="card-head"><div class="card-head-title">✏️ Edit Turf</div></div>
+        <div style="padding:16px 20px">
+          <div style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">🏟️ Facilities</div>
+          <div id="mgrFacWrap" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:20px"></div>
+
+          <div style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">📝 Description</div>
+          <div style="font-size:11.5px;color:var(--muted);margin-bottom:8px">এই লেখা customer site এ তোমার turf card এর নিচে দেখাবে</div>
+          <textarea id="mgrDesc" rows="3" placeholder="তোমার turf সম্পর্কে সংক্ষেপে লিখো... (যেমন: Premium quality turf with floodlight facility)" style="width:100%;background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-size:13px;font-family:var(--font);outline:none;resize:vertical;line-height:1.6" onfocus="this.style.borderColor='var(--green-dark)'" onblur="this.style.borderColor='var(--border)'"></textarea>
+
+          <button onclick="saveTurfEdit()" style="width:100%;background:var(--green);color:#000;border:none;padding:11px;border-radius:9px;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font);margin-top:16px">💾 Save করো</button>
+          <div id="editSaveMsg" style="font-size:12px;text-align:center;margin-top:8px;display:none"></div>
+        </div>
+      </div>
+
+      <!-- SLOT MANAGEMENT -->
+      <div class="card-box">
+        <div class="card-head"><div class="card-head-title">🕐 Slot Management</div></div>
+        <div style="padding:16px 20px">
+          <div style="font-size:11.5px;color:var(--muted);margin-bottom:14px">যত খুশি slot যোগ বা বাদ দিতে পারবে — কোনো limit নেই।</div>
+          <div id="slotChips" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px"></div>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+            <input type="time" id="newSlotTime" style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:9px 10px;color:var(--text);font-family:var(--font);font-size:13px;outline:none">
+            <button onclick="addSlot()" class="btn btn-green" style="padding:9px 18px">+ Add Slot</button>
+          </div>
+          <button onclick="saveSlots()" style="width:100%;background:var(--green);color:#000;border:none;padding:11px;border-radius:9px;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font);margin-top:18px">💾 Slot Save করো</button>
+          <div id="slotSaveMsg" style="font-size:12px;text-align:center;margin-top:8px;display:none"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PRICING -->
+    <div class="tab-page" id="tab-pricing">
+      <div class="page-header">
+        <div><div class="page-title">PRICING</div></div>
+      </div>
+
+      <div class="card-box">
+        <div style="padding:16px 20px">
+
+          <div style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Base Price</div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:20px">
+            <span style="color:var(--muted);font-size:13px;font-weight:600">৳</span>
+            <input type="number" id="prBasePrice" style="background:var(--black);border:1px solid var(--border);border-radius:7px;padding:8px 10px;color:var(--green);font-size:16px;font-family:'Bebas Neue',sans-serif;width:130px;outline:none" onfocus="this.style.borderColor='var(--green-dark)'" onblur="this.style.borderColor='var(--border)'" oninput="validatePrAdvance()">
+            <span style="color:var(--muted);font-size:12px">/hr</span>
+          </div>
+
+          <div style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Required Advance</div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+            <span style="color:var(--muted);font-size:13px;font-weight:600">৳</span>
+            <input type="number" id="prAdvance" min="0" style="background:var(--black);border:1px solid var(--border);border-radius:7px;padding:8px 10px;color:#3498db;font-size:16px;font-family:'Bebas Neue',sans-serif;width:130px;outline:none" onfocus="this.style.borderColor='#1a4a6a'" onblur="this.style.borderColor='var(--border)'" oninput="validatePrAdvance()">
+          </div>
+          <div id="prAdvanceErr" style="font-size:12px;color:var(--red);margin-bottom:20px;display:none"></div>
+
+          <div style="background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:20px">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0">
+              <div style="font-size:13px;font-weight:600;color:var(--text)">Time-based Pricing</div>
+              <label style="position:relative;width:44px;height:24px;cursor:pointer;display:inline-block">
+                <input type="checkbox" id="prTbp" onchange="togglePrTbp(this.checked)" style="opacity:0;width:0;height:0;position:absolute">
+                <span id="prTbpSlider" style="position:absolute;inset:0;background:#333;border-radius:24px;transition:.3s"></span>
+                <span id="prTbpThumb" style="position:absolute;width:18px;height:18px;background:#666;border-radius:50%;top:3px;left:3px;transition:.3s"></span>
+              </label>
+            </div>
+            <div id="prTbpSection" style="display:none;margin-top:14px">
+              <div id="prSlotList"></div>
+              <button onclick="addPrSlotRow()" style="background:var(--green-glow);border:1px solid var(--green-dark);color:var(--green);padding:7px 14px;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font);margin-top:8px;width:100%">+ Add Time Range</button>
+            </div>
+          </div>
+
+          <button onclick="savePricing()" style="width:100%;background:var(--green);color:#000;border:none;padding:11px;border-radius:9px;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font)">Save</button>
+          <div id="prSaveMsg" style="font-size:12px;text-align:center;margin-top:8px;display:none"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ANALYTICS -->
+    <div class="tab-page" id="tab-analytics">
+      <div class="page-header">
+        <div><div class="page-title">ANALYTICS</div></div>
+        <div class="range-toggle">
+          <button class="range-btn" data-range="7" onclick="setMgrAnalyticsRange(7)">৭ দিন</button>
+          <button class="range-btn active" data-range="30" onclick="setMgrAnalyticsRange(30)">৩০ দিন</button>
+          <button class="range-btn" data-range="90" onclick="setMgrAnalyticsRange(90)">৯০ দিন</button>
+          <button class="range-btn" data-range="all" onclick="setMgrAnalyticsRange('all')">সব সময়</button>
+        </div>
+      </div>
+
+      <div class="kpi-mini-row">
+        <div class="kpi-mini"><div class="kpi-mini-label">Total Bookings</div><div class="kpi-mini-val" id="mgrAkTotal">—</div><div class="kpi-mini-delta" id="mgrAkTotalDelta"></div></div>
+        <div class="kpi-mini"><div class="kpi-mini-label">Revenue (Total)</div><div class="kpi-mini-val green" id="mgrAkRevenue">—</div><div class="kpi-mini-delta" id="mgrAkRevenueDelta"></div></div>
+        <div class="kpi-mini"><div class="kpi-mini-label">Avg. Booking Value</div><div class="kpi-mini-val" id="mgrAkAvgValue">—</div><div class="kpi-mini-delta">প্রতি বুকিং গড়ে</div></div>
+        <div class="kpi-mini"><div class="kpi-mini-label">Cancellation Rate</div><div class="kpi-mini-val" id="mgrAkCancelRate">—</div><div class="kpi-mini-delta" id="mgrAkCancelSub"></div></div>
+        <div class="kpi-mini"><div class="kpi-mini-label">Total Due</div><div class="kpi-mini-val orange" id="mgrAkDue">—</div><div class="kpi-mini-delta">turf এ collect করতে হবে</div></div>
+      </div>
+
+      <div class="chart-card">
+        <div class="chart-card-head">
+          <div>
+            <div class="chart-title">📈 Revenue &amp; Booking Trend</div>
+            <div class="chart-sub" id="mgrAnalyticsRangeLabel">গত ৩০ দিনের হিসাব</div>
+          </div>
+          <div class="chart-legend">
+            <span><i style="background:var(--green)"></i> Revenue (৳)</span>
+            <span><i style="background:#3498db"></i> Bookings (count)</span>
+          </div>
+        </div>
+        <div id="mgrAnalyticsRevChart"><div class="empty-chart"><span class="spinner"></span> Loading...</div></div>
+      </div>
+
+      <div class="analytics-grid-2">
+        <div class="chart-card">
+          <div class="chart-card-head">
+            <div>
+              <div class="chart-title">📊 Booking Status</div>
+              <div class="chart-sub">Confirmed vs Manual vs Cancelled</div>
+            </div>
+          </div>
+          <div id="mgrStatusDonut"><div class="empty-chart"><span class="spinner"></span> Loading...</div></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-card-head">
+            <div>
+              <div class="chart-title">💳 Payment Method Split</div>
+              <div class="chart-sub">Online advance vs Cash at turf</div>
+            </div>
+          </div>
+          <div id="mgrPaymentSplit"><div class="empty-chart"><span class="spinner"></span> Loading...</div></div>
+        </div>
+      </div>
+
+      <div class="chart-card">
+        <div class="chart-card-head">
+          <div>
+            <div class="chart-title">🔥 Peak Booking Hours</div>
+            <div class="chart-sub">কোন সময়ে সবচেয়ে বেশি বুকিং হয়</div>
+          </div>
+        </div>
+        <div id="mgrPeakHours"><div class="empty-chart"><span class="spinner"></span> Loading...</div></div>
+      </div>
+    </div>
+
+    <!-- MANUAL BOOKING -->
+    <div class="tab-page" id="tab-manual">
+      <div class="page-header">
+        <div><div class="page-title">MANUAL BOOKING</div></div>
+      </div>
+      <div class="note-box">✅ এই form দিয়ে slot block করলে website এ automatically <strong>unavailable</strong> দেখাবে, এবং টাকার হিসাবও (Total/Received/Due) system এ save হয়ে যাবে — আলাদা খাতায় লিখে রাখতে হবে না।</div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">তারিখ</label>
+          <input type="date" class="form-input" id="mDate" onchange="loadManualSlots()">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Turf</label>
+          <input type="text" class="form-input" id="mTurfDisplay" disabled style="color:var(--green);font-weight:600">
+        </div>
+      </div>
+
+      <div id="slotSection" style="display:none">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <div class="slot-label">স্লট নির্বাচন করো — <span id="mDateLabel" style="color:var(--green)"></span></div>
+          <div id="selCountBadge" style="display:none;background:var(--green);color:#000;font-size:12px;font-weight:700;padding:4px 12px;border-radius:20px">0 selected</div>
+        </div>
+        <div class="slot-grid" id="slotGrid"></div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Customer Name</label>
+            <input type="text" class="form-input" id="mName" placeholder="নাম (optional)">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Phone</label>
+            <input type="tel" class="form-input" id="mPhone" placeholder="01XXXXXXXXX" maxlength="11">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Total Amount (৳)</label>
+            <input type="number" class="form-input" id="mTotal" placeholder="0" oninput="onManualAmountEdit()" style="color:var(--green);font-weight:700">
+          </div>
+          <div class="form-group">
+            <label class="form-label">এখন Received (৳)</label>
+            <input type="number" class="form-input" id="mReceived" placeholder="0" oninput="onManualAmountEdit()" style="color:#3498db;font-weight:700">
+          </div>
+        </div>
+        <div id="mDueHint" style="font-size:12px;color:var(--muted);margin:-8px 0 12px 2px"></div>
+
+        <div class="form-group">
+          <label class="form-label">Payment Method</label>
+          <select class="form-select" id="mPayMethod">
+            <option value="Cash">💵 Cash</option>
+            <option value="bKash">📱 bKash</option>
+            <option value="Nagad">📱 Nagad</option>
+            <option value="Rocket">📱 Rocket</option>
+            <option value="Bank">🏦 Bank Transfer</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Note</label>
+          <input type="text" class="form-input" id="mNote" placeholder="কিছু লিখতে চাইলে (optional)">
+        </div>
+        <button class="block-btn" id="blockBtn" disabled onclick="saveBooking()">✓ Slot Block করো</button>
+        <div id="selectedSlotsList" style="margin-top:10px;display:none">
+          <div style="font-size:12px;color:var(--muted);margin-bottom:6px;font-weight:600;text-transform:uppercase;letter-spacing:.5px">Selected Slots:</div>
+          <div id="selSlotsDisplay" style="display:flex;flex-wrap:wrap;gap:6px"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ALL BOOKINGS -->
+    <div class="tab-page" id="tab-bookings">
+      <div class="page-header">
+        <div><div class="page-title">ALL BOOKINGS</div><div class="page-sub" id="bookingSubTitle"></div></div>
+        <button class="btn btn-outline" onclick="loadAllBookings()">↻ Refresh</button>
+      </div>
+
+      <div class="stats-grid" style="grid-template-columns:repeat(3,1fr)">
+        <div class="stat-card"><div class="stat-label" data-i18n="stat.totalBookAll">মোট বুকিং</div><div class="stat-value green" id="statTotalBook">—</div></div>
+        <div class="stat-card"><div class="stat-label" data-i18n="stat.advanceCollected">Advance Collected</div><div class="stat-value green" id="statAdvance">—</div></div>
+        <div class="stat-card"><div class="stat-label" data-i18n="stat.dueAmount">Due Amount</div><div class="stat-value orange" id="statDue">—</div></div>
+      </div>
+
+      <div class="filters">
+        <select id="filterType" class="filter-select" onchange="applyBookingFilter()">
+          <option value="">সব ধরন</option>
+          <option value="confirmed">Online</option>
+          <option value="manual">Manual</option>
+          <option value="pending">Pending</option>
+          <option value="cancelled">Cancelled</option>
+        </select>
+        <select id="filterDue" class="filter-select" onchange="applyBookingFilter()">
+          <option value="">সব Due</option>
+          <option value="due">বকেয়া আছে</option>
+          <option value="paid">সম্পূর্ণ পরিশোধিত</option>
+        </select>
+        <input type="date" id="filterBookDate" class="filter-input" onchange="applyBookingFilter()">
+        <button class="btn btn-outline btn-sm" onclick="clearBookingFilter()">Clear</button>
+      </div>
+
+      <div class="table-wrap">
+        <div class="table-head"><div class="table-head-title">Booking List</div><div class="table-count" id="bookingCountLabel"></div></div>
+        <div id="bookingTableWrap" style="overflow-x:auto"><div class="empty-state"><span class="spinner"></span> Loading...</div></div>
+      </div>
+    </div>
+
+    <!-- TURF INFO -->
+    <div class="tab-page" id="tab-info">
+      <div class="page-header">
+        <div><div class="page-title">TURF INFO</div><div class="page-sub">সম্পাদনা শুধু Admin Panel থেকে করা যাবে</div></div>
+      </div>
+      <div class="card-box">
+        <div class="card-head"><div class="card-head-title">📍 সাধারণ তথ্য</div></div>
+        <div style="padding:6px 20px">
+          <div class="info-row"><span class="il">Turf নাম</span><span class="iv" id="infoName">—</span></div>
+          <div class="info-row"><span class="il">ঠিকানা</span><span class="iv" id="infoAddr">—</span></div>
+          <div class="info-row"><span class="il">Base Price (per hour)</span><span class="iv" id="infoPrice" style="color:var(--green)">—</span></div>
+        </div>
+      </div>
+      <div class="card-box" id="infoTimeCard" style="display:none">
+        <div class="card-head"><div class="card-head-title">⏱ Time-based Pricing</div></div>
+        <div style="padding:6px 20px" id="infoTimeBody"></div>
+      </div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div class="tab-page" id="tab-settings">
+      <div class="page-header">
+        <div><div class="page-title" data-i18n="settings.title">SETTINGS</div></div>
+      </div>
+      <div class="card-box">
+        <div class="card-head"><div class="card-head-title" data-i18n="settings.langTitle">🌐 Language</div></div>
+        <div style="padding:16px 20px">
+          <div style="display:flex;gap:10px">
+            <button class="lang-opt-btn" id="langBtnBn" onclick="setLanguage('bn')">🇧🇩 বাংলা</button>
+            <button class="lang-opt-btn" id="langBtnEn" onclick="setLanguage('en')">🇬🇧 English</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card-box">
+        <div class="card-head"><div class="card-head-title">🔒 Password বদলাও</div></div>
+        <div style="padding:16px 20px">
+          <div class="form-group">
+            <label class="form-label">বর্তমান Password</label>
+            <input type="password" class="form-input" id="mgrOldPass" placeholder="এখনকার password দাও">
+          </div>
+          <div class="form-group">
+            <label class="form-label">নতুন Password</label>
+            <input type="password" class="form-input" id="mgrNewPass" placeholder="নতুন password দাও (কমপক্ষে ৬ অক্ষর)">
+          </div>
+          <div class="form-group">
+            <label class="form-label">নতুন Password আবার দাও</label>
+            <input type="password" class="form-input" id="mgrNewPass2" placeholder="আবার একই password দাও">
+          </div>
+          <button onclick="changeMgrPassword()" style="width:100%;background:var(--green);color:#000;border:none;padding:11px;border-radius:9px;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font)">Password বদলাও</button>
+          <div id="mgrPassMsg" style="font-size:12px;text-align:center;margin-top:8px;display:none"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- BOOKING DETAIL MODAL -->
+<div class="modal-overlay" id="detailModal">
+  <div class="modal">
+    <div class="modal-title">BOOKING DETAILS</div>
+    <div id="detailContent"></div>
+    <div class="modal-actions">
+      <button class="btn btn-green-sm" id="markPaidBtn" onclick="markDuePaid()">✓ বকেয়া আদায় হয়েছে</button>
+      <button class="btn btn-red" id="cancelDetailBtn" onclick="cancelDetailBooking()">Cancel Booking</button>
+      <button class="btn btn-outline" onclick="closeModal('detailModal')">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- NOTIFICATION PANEL -->
+<div class="notif-panel" id="notifPanel">
+  <div class="notif-panel-head">
+    <div class="notif-panel-title">🔔 NOTIFICATIONS</div>
+    <button class="notif-close" onclick="toggleNotifPanel()">✕</button>
+  </div>
+  <div class="notif-controls">
+    <div class="notif-toggle-wrap">
+      <label class="notif-toggle">
+        <input type="checkbox" id="notifToggle" checked onchange="toggleNotifications(this.checked)">
+        <span class="notif-slider"></span>
+      </label>
+      <span id="notifToggleLabel">নোটিফিকেশন চালু</span>
+    </div>
+    <button onclick="clearAllNotifs()" style="background:transparent;border:none;color:var(--muted);cursor:pointer;font-size:12px;font-family:var(--font)">সব মুছো</button>
+  </div>
+  <div class="notif-list" id="notifList">
+    <div class="notif-empty">🔔<br>কোনো নোটিফিকেশন নেই</div>
+  </div>
+  <div class="notif-footer">
+    <button onclick="markAllRead()" style="flex:1;background:var(--card2);border:1px solid var(--border);color:var(--muted);padding:8px;border-radius:8px;cursor:pointer;font-size:12px;font-family:var(--font)">সব পড়া হয়েছে ✓</button>
+  </div>
+</div>
+
+<!-- NEW BOOKING POPUP -->
+<div class="notif-popup" id="notifPopup">
+  <button class="notif-popup-close" onclick="closePopup()">✕</button>
+  <div class="notif-popup-head">
+    <div class="notif-popup-icon">⚽</div>
+    <div class="notif-popup-title">নতুন বুকিং!</div>
+  </div>
+  <div class="notif-popup-body" id="notifPopupBody">—</div>
+  <div class="notif-popup-ref" id="notifPopupRef">—</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- Firebase compat -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script>
+// ══ Firebase Init ══
+firebase.initializeApp({
+  apiKey: "AIzaSyCOZ2fyNMrWjmn4jLSVI9iPStyQJu3SJzk",
+  authDomain: "firstbook-39156.firebaseapp.com",
+  projectId: "firstbook-39156",
+  storageBucket: "firstbook-39156.firebasestorage.app",
+  messagingSenderId: "133014620832",
+  appId: "1:133014620832:web:b09e4570731b291be0d7c5"
+});
+const db = firebase.firestore();
+
+// ── SECURITY: escape user-controlled text before inserting into innerHTML (prevents stored XSS) ──
+function escapeHtml(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+// ══ PASSWORDS — প্রতিটা turf manager এর আলাদা password ══
+const PASSWORDS = {
+  'turf1pass': 't1',
+  'sk2026':    't2',
+  'bhuiyan99': 't3',
+  'aksc1234':  't4',
+  'kali2026':  't5',
+  'kings786':  't6',
+  'khanda55':  't7',
+  'tomsom123': 't8',
+};
+
+const LEGACY_TURF_SEED = [
+  {id:'t1', name:'Cumilla Turf Zone',          addr:'Noapara Road, Cumilla',                               price:1200, emoji:'🏟️'},
+  {id:'t2', name:'S.K. Sports Arena',           addr:'Jafar Khan Road, Race Course, Cumilla',               price:2000, emoji:'⚽'},
+  {id:'t3', name:'Bhuiyan Turf Ground',         addr:'Shatora, Cumilla',                                    price:900,  emoji:'🌿'},
+  {id:'t4', name:'A.K Sports Complex',          addr:'ABC Bricks Field, Coatbari Road, Doulotpur, Cumilla', price:1100, emoji:'🏅'},
+  {id:'t5', name:'K.Ali Sports Complex',        addr:'Noapara Road, Cumilla',                               price:1000, emoji:'🎯'},
+  {id:'t6', name:'Cumilla Kings Arena',         addr:'Telikona, Nurpur, Cumilla',                           price:1300, emoji:'👑'},
+  {id:'t7', name:'Khandakar S.A Sports Arena',  addr:'Maghigcha, Cumilla',                                  price:950,  emoji:'⭐'},
+  {id:'t8', name:'Tomsombridge Turf & Kids Zone', addr:'Moddhom Ashrafpur, Mazar Gate, Tomsom Bridge, Cumilla', price:1500, emoji:'🎪'},
+];
+
+const ALL_SLOTS = ['07:00 AM','08:00 AM','09:00 AM','10:00 AM','11:00 AM','12:00 PM','01:00 PM','02:00 PM','03:00 PM','04:00 PM','05:00 PM','06:00 PM','07:00 PM','08:00 PM','09:00 PM','10:00 PM','11:00 PM','12:00 AM'];
+const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+let currentUser = null;
+let selSlots = [];
+let allTurfBookings = [];
+let scheduleDate = new Date();
+let currentDetailDocId = null, currentDetailData = null;
+let currentSlots = [...ALL_SLOTS]; // turf-specific slots (overridden by Slot Management if customized)
+
+// ══════════ LANGUAGE (বাংলা / English) ══════════
+const I18N = {
+  bn: {
+    'nav.dashboard':'ড্যাশবোর্ড', 'nav.schedule':'আজকের শিডিউল', 'nav.turfmgmt':'Turf Management',
+    'nav.pricing':'Pricing', 'nav.analytics':'Analytics', 'nav.manual':'Manual Booking',
+    'nav.bookings':'All Bookings', 'nav.info':'Turf Info', 'nav.settings':'Settings',
+    'page.dashboard':'ড্যাশবোর্ড', 'page.schedule':'শিডিউল',
+    'stat.todayBookings':'আজকের বুকিং', 'stat.todayRevenue':'আজকের আয়', 'stat.monthBookings':'এই মাসের বুকিং',
+    'stat.totalDue':'মোট বকেয়া', 'stat.payoutDue':'Firstbook থেকে পাবে', 'stat.totalBookAll':'মোট বুকিং',
+    'stat.advanceCollected':'মোট Advance', 'stat.dueAmount':'মোট বকেয়া',
+    'settings.title':'সেটিংস', 'settings.langTitle':'🌐 ভাষা', 'settings.langSub':'Panel-এর ভাষা বেছে নাও',
+  },
+  en: {
+    'nav.dashboard':'Dashboard', 'nav.schedule':"Today's Schedule", 'nav.turfmgmt':'Turf Management',
+    'nav.pricing':'Pricing', 'nav.analytics':'Analytics', 'nav.manual':'Manual Booking',
+    'nav.bookings':'All Bookings', 'nav.info':'Turf Info', 'nav.settings':'Settings',
+    'page.dashboard':'DASHBOARD', 'page.schedule':'SCHEDULE',
+    'stat.todayBookings':"Today's Bookings", 'stat.todayRevenue':"Today's Revenue", 'stat.monthBookings':"This Month's Bookings",
+    'stat.totalDue':'Total Due', 'stat.payoutDue':'Owed by Firstbook', 'stat.totalBookAll':'Total Bookings',
+    'stat.advanceCollected':'Advance Collected', 'stat.dueAmount':'Due Amount',
+    'settings.title':'SETTINGS', 'settings.langTitle':'🌐 Language', 'settings.langSub':'Choose the panel language',
+  }
+};
+let currentLang = localStorage.getItem('fb_mgr_lang') || 'bn';
+
+function applyLanguage(){
+  document.querySelectorAll('[data-i18n]').forEach(el=>{
+    const key = el.getAttribute('data-i18n');
+    const dict = I18N[currentLang];
+    if(dict && dict[key]) el.textContent = dict[key];
+  });
+  document.getElementById('langBtnBn')?.classList.toggle('active', currentLang==='bn');
+  document.getElementById('langBtnEn')?.classList.toggle('active', currentLang==='en');
+}
+
+window.setLanguage = function(lang){
+  currentLang = lang;
+  localStorage.setItem('fb_mgr_lang', lang);
+  applyLanguage();
+  toast(lang==='bn' ? '✅ ভাষা বাংলা করা হয়েছে' : '✅ Language switched to English', 'success');
+};
+
+function toast(msg, type) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (type ? ' '+type : '');
+  setTimeout(() => t.className = 'toast', 3500);
+}
+
+function todayStr() {
+  const d = new Date();
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+function dateToStr(d) {
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+function slotToHour(s) {
+  const parts = s.split(' ');
+  const [h] = parts[0].split(':');
+  const ampm = parts[1];
+  return parseInt(h) + (ampm==='PM' && h!=='12' ? 12 : 0) - (ampm==='AM' && h==='12' ? 12 : 0);
+}
+
+// ── LOGIN ──
+async function doLogin() {
+  const pass = document.getElementById('passInput').value.trim();
+  const errEl = document.getElementById('loginErr');
+  const btn = document.getElementById('mgrLoginBtn');
+  errEl.style.display = 'none';
+  if(!pass) { errEl.style.display = 'block'; return; }
+  btn.disabled = true; btn.textContent = 'Checking...';
+
+  let turfId = null;
+  let matchedPassword = pass;
+  // 1. Check Firestore-based password first (set via Admin Panel or Manager's own Settings → Change Password)
+  try {
+    const snap = await db.collection('prices').where('managerPassword','==',pass).limit(1).get();
+    if(!snap.empty) turfId = snap.docs[0].id;
+  } catch(e) { /* ignore — fall through to legacy check below */ }
+
+  // 2. Fall back to the original hardcoded password (until this turf's password is changed for the first time)
+  if(!turfId && PASSWORDS[pass]) turfId = PASSWORDS[pass];
+
+  if(!turfId) {
+    btn.disabled = false; btn.textContent = 'Login →';
+    errEl.style.display = 'block';
+    document.getElementById('passInput').value = '';
+    return;
+  }
+
+  // Fetch the turf's full info directly from Firestore (supports any turf, any city — not just the original 8)
+  try {
+    const turfDoc = await db.collection('prices').doc(turfId).get();
+    const data = turfDoc.exists ? turfDoc.data() : {};
+    const legacy = LEGACY_TURF_SEED.find(t => t.id === turfId);
+    currentUser = {
+      id: turfId,
+      name: data.name || (legacy && legacy.name) || 'নাম নেই',
+      addr: data.addr || (legacy && legacy.addr) || '',
+      city: data.city || (legacy && legacy.city) || '',
+      emoji: data.emoji || (legacy && legacy.emoji) || '⚽',
+      price: data.price || (legacy && legacy.price) || 0,
+      managerPassword: matchedPassword,
+    };
+  } catch(e) {
+    btn.disabled = false; btn.textContent = 'Login →';
+    errEl.textContent = 'নেটওয়ার্ক error — আবার চেষ্টা করো';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  btn.disabled = false; btn.textContent = 'Login →';
+  errEl.style.display = 'none';
+  document.getElementById('loginWrap').style.display = 'none';
+  document.getElementById('appLayout').style.display = 'flex';
+  sessionStorage.setItem('mgrTurfId', turfId);
+  initApp();
+}
+
+function doLogout() {
+  if(notifListener) { notifListener(); notifListener = null; }
+  currentUser = null; selSlots = []; notifList = []; unreadCount = 0; knownBookingIds = new Set();
+  sessionStorage.removeItem('mgrTurfId');
+  document.getElementById('loginWrap').style.display = 'flex';
+  document.getElementById('appLayout').style.display = 'none';
+  document.getElementById('passInput').value = '';
+}
+
+// Auto-login if session exists (stores resolved turfId, not the raw password)
+window.onload = async function() {
+  const savedTurfId = sessionStorage.getItem('mgrTurfId');
+  if(!savedTurfId) return;
+  try {
+    const turfDoc = await db.collection('prices').doc(savedTurfId).get();
+    if(!turfDoc.exists && !LEGACY_TURF_SEED.find(t=>t.id===savedTurfId)) return; // stale session, turf no longer exists
+    const data = turfDoc.exists ? turfDoc.data() : {};
+    const legacy = LEGACY_TURF_SEED.find(t => t.id === savedTurfId);
+    currentUser = {
+      id: savedTurfId,
+      name: data.name || (legacy && legacy.name) || 'নাম নেই',
+      addr: data.addr || (legacy && legacy.addr) || '',
+      city: data.city || (legacy && legacy.city) || '',
+      emoji: data.emoji || (legacy && legacy.emoji) || '⚽',
+      price: data.price || (legacy && legacy.price) || 0,
+      managerPassword: (data.managerPassword) || Object.keys(PASSWORDS).find(p => PASSWORDS[p]===savedTurfId),
+    };
+    document.getElementById('loginWrap').style.display = 'none';
+    document.getElementById('appLayout').style.display = 'flex';
+    initApp();
+  } catch(e) { /* network issue — stay on login screen */ }
+};
+
+// ── TAB NAV ──
+function showTab(tab, el) {
+  document.querySelectorAll('.tab-page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+  if(el) el.classList.add('active');
+  if(tab==='schedule') renderSchedule();
+  if(tab==='bookings') applyBookingFilter();
+  if(tab==='info') renderTurfInfo();
+  if(tab==='turfmgmt') loadTurfMgmt();
+  if(tab==='pricing') loadPricingTab();
+  if(tab==='analytics') renderMgrAnalytics();
+}
+
+function goManualToday() {
+  document.querySelectorAll('.tab-page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('tab-manual').classList.add('active');
+  document.getElementById('navManual').classList.add('active');
+}
+
+function goToPayoutDetails() {
+  document.querySelectorAll('.tab-page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('tab-bookings').classList.add('active');
+  document.getElementById('navBookings').classList.add('active');
+  applyBookingFilter();
+}
+
+function goToAnalytics() {
+  document.querySelectorAll('.tab-page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('tab-analytics').classList.add('active');
+  document.getElementById('navAnalytics').classList.add('active');
+  renderMgrAnalytics();
+}
+
+// ── INIT APP ──
+function initApp() {
+  document.getElementById('sbTurfEmoji').textContent = currentUser.emoji || '⚽';
+  document.getElementById('sbTurfName').textContent = currentUser.name;
+  document.getElementById('sbTurfAddr').textContent = '📍 ' + currentUser.addr;
+  document.getElementById('mTurfDisplay').value = currentUser.emoji + ' ' + currentUser.name;
+  document.getElementById('mDate').value = todayStr();
+  scheduleDate = new Date();
+  applyLanguage();
+  loadCurrentSlots();
+  loadAllBookings();
+  initNotifications();
+}
+
+// Fetch this turf's custom available slots (if set via Slot Management), else fall back to default
+let currentPricing = { price: null, timePricing: false, timeSlots: [] };
+
+function loadCurrentSlots() {
+  db.collection('prices').doc(currentUser.id).get().then(doc => {
+    const data = doc.exists ? doc.data() : {};
+    currentSlots = (data.availableSlots && data.availableSlots.length) ? [...data.availableSlots] : [...ALL_SLOTS];
+    currentPricing = {
+      price: data.price || currentUser.price,
+      timePricing: data.timePricing || false,
+      timeSlots: data.timeSlots || [],
+    };
+    // Refresh any currently-visible tab that depends on the slot list / pricing
+    if(document.getElementById('tab-schedule').classList.contains('active')) renderSchedule();
+    if(document.getElementById('tab-manual').classList.contains('active')) loadManualSlots();
+  }).catch(()=>{ currentSlots = [...ALL_SLOTS]; currentPricing = { price: currentUser.price, timePricing:false, timeSlots:[] }; });
+}
+
+function getSlotPriceMgr(slot) {
+  const hr = slotToHour(slot);
+  if(currentPricing.timePricing && currentPricing.timeSlots.length) {
+    for(const sl of currentPricing.timeSlots) {
+      const from = parseInt(sl.from.split(':')[0]), to = parseInt(sl.to.split(':')[0]);
+      if(hr>=from && hr<to) return sl.price;
+    }
+  }
+  return currentPricing.price || currentUser.price;
+}
+
+// ── NOTIFICATION SYSTEM ──
+let notifEnabled = true;
+let notifList = [];
+let unreadCount = 0;
+let notifListener = null;
+let notifPanelOpen = false;
+let popupTimeout = null;
+let knownBookingIds = new Set(); // prevent showing notif for existing bookings on login
+
+function initNotifications() {
+  // Load saved prefs
+  const saved = localStorage.getItem('notifEnabled_' + currentUser.id);
+  notifEnabled = saved === null ? true : saved === 'true';
+  document.getElementById('notifToggle').checked = notifEnabled;
+  document.getElementById('notifToggleLabel').textContent = notifEnabled ? 'নোটিফিকেশন চালু' : 'Notifications বন্ধ';
+  document.getElementById('notifBell').className = 'notif-bell' + (notifEnabled ? ' active' : '');
+
+  // Load saved notifications
+  const savedNotifs = localStorage.getItem('notifs_' + currentUser.id);
+  if(savedNotifs) {
+    try { notifList = JSON.parse(savedNotifs); } catch(e) { notifList = []; }
+  }
+  updateBadge();
+  renderNotifList();
+
+  // Pre-populate known IDs (existing bookings — don't notify for these)
+  db.collection('bookings').where('turfId','==',currentUser.id).get().then(snap => {
+    snap.forEach(d => knownBookingIds.add(d.id));
+    startListener();
+  });
+}
+
+function startListener() {
+  if(notifListener) notifListener(); // unsubscribe previous
+  notifListener = db.collection('bookings')
+    .where('turfId','==', currentUser.id)
+    .onSnapshot(snap => {
+      snap.docChanges().forEach(change => {
+        if(change.type === 'added' && !knownBookingIds.has(change.doc.id)) {
+          knownBookingIds.add(change.doc.id);
+          const b = change.doc.data();
+          if(b.status === 'cancelled') return;
+          onNewBooking(change.doc.id, b);
+        }
+      });
+    });
+}
+
+function onNewBooking(docId, b) {
+  const notif = {
+    id: docId,
+    ref: b.refCode || '—',
+    customer: b.customerName || 'Walk-in',
+    phone: b.phone || '—',
+    date: b.date || '—',
+    time: b.timeSlot || '—',
+    type: b.status === 'manual' ? 'Manual' : 'Online',
+    total: b.total || 0,
+    ts: Date.now(),
+    read: false,
+  };
+
+  notifList.unshift(notif);
+  if(notifList.length > 50) notifList = notifList.slice(0, 50);
+  saveNotifs();
+
+  unreadCount++;
+  updateBadge();
+  renderNotifList();
+
+  if(notifEnabled) {
+    showPopup(notif);
+    // Browser notification if permission granted
+    if(Notification.permission === 'granted') {
+      new Notification('⚽ নতুন বুকিং! — ' + currentUser.name, {
+        body: `${notif.customer} | ${notif.date} ${notif.time} | ৳${notif.total}`,
+        icon: '/favicon.ico',
+      });
+    }
+  }
+
+  // Refresh dashboard data
+  loadAllBookings();
+}
+
+function showPopup(notif) {
+  const popup = document.getElementById('notifPopup');
+  document.getElementById('notifPopupBody').innerHTML =
+    `👤 ${escapeHtml(notif.customer)} &nbsp;|&nbsp; 📞 ${escapeHtml(notif.phone)}<br>📅 ${escapeHtml(notif.date)} &nbsp;⏰ ${escapeHtml(notif.time)}<br>💰 ৳${notif.total} &nbsp;<span class="badge ${notif.type==='Manual'?'badge-manual':'badge-confirmed'}">${notif.type}</span>`;
+  document.getElementById('notifPopupRef').textContent = notif.ref;
+  popup.classList.add('show');
+  if(popupTimeout) clearTimeout(popupTimeout);
+  popupTimeout = setTimeout(() => popup.classList.remove('show'), 6000);
+}
+
+function closePopup() {
+  document.getElementById('notifPopup').classList.remove('show');
+  if(popupTimeout) clearTimeout(popupTimeout);
+}
+
+function toggleNotifPanel() {
+  notifPanelOpen = !notifPanelOpen;
+  document.getElementById('notifPanel').classList.toggle('open', notifPanelOpen);
+  if(notifPanelOpen) {
+    markAllRead();
+  }
+}
+
+function toggleNotifications(enabled) {
+  notifEnabled = enabled;
+  localStorage.setItem('notifEnabled_' + currentUser.id, String(enabled));
+  document.getElementById('notifToggleLabel').textContent = enabled ? 'নোটিফিকেশন চালু' : 'Notifications বন্ধ';
+  document.getElementById('notifBell').className = 'notif-bell' + (enabled ? ' active' : '');
+
+  if(enabled) {
+    // Request browser notification permission
+    if(Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+    toast('🔔 নোটিফিকেশন চালু হয়েছে', 'success');
+  } else {
+    toast('🔕 Notifications বন্ধ হয়েছে');
+  }
+}
+
+function markAllRead() {
+  notifList.forEach(n => n.read = true);
+  unreadCount = 0;
+  updateBadge();
+  renderNotifList();
+  saveNotifs();
+}
+
+function clearAllNotifs() {
+  if(!confirm('সব notification মুছে ফেলবে?')) return;
+  notifList = [];
+  unreadCount = 0;
+  updateBadge();
+  renderNotifList();
+  saveNotifs();
+}
+
+function updateBadge() {
+  const badge = document.getElementById('notifBadge');
+  if(unreadCount > 0) {
+    badge.textContent = unreadCount > 9 ? '9+' : unreadCount;
+    badge.classList.add('show');
+  } else {
+    badge.classList.remove('show');
+  }
+}
+
+function renderNotifList() {
+  const list = document.getElementById('notifList');
+  if(!notifList.length) {
+    list.innerHTML = '<div class="notif-empty">🔔<br>কোনো নোটিফিকেশন নেই</div>';
+    return;
+  }
+  list.innerHTML = notifList.map(n => {
+    const timeAgo = getTimeAgo(n.ts);
+    return `<div class="notif-item${n.read?'':' unread'}" onclick="markOneRead('${n.id}')">
+      <div class="notif-item-top">
+        <div class="notif-item-title">⚽ নতুন ${n.type} বুকিং</div>
+        <div class="notif-item-time">${timeAgo}</div>
+      </div>
+      <div class="notif-item-body">👤 ${escapeHtml(n.customer)} &nbsp;|&nbsp; 📞 ${escapeHtml(n.phone)}<br>📅 ${escapeHtml(n.date)} &nbsp;⏰ ${escapeHtml(n.time)} &nbsp;|&nbsp; ৳${n.total}</div>
+      <div class="notif-item-ref">${escapeHtml(n.ref)}</div>
+    </div>`;
+  }).join('');
+}
+
+function markOneRead(id) {
+  const notif = notifList.find(n => n.id === id);
+  if(notif && !notif.read) {
+    notif.read = true;
+    unreadCount = Math.max(0, unreadCount - 1);
+    updateBadge();
+    renderNotifList();
+    saveNotifs();
+  }
+}
+
+function saveNotifs() {
+  localStorage.setItem('notifs_' + currentUser.id, JSON.stringify(notifList.slice(0, 50)));
+}
+
+function getTimeAgo(ts) {
+  const diff = Date.now() - ts;
+  const mins = Math.floor(diff / 60000);
+  const hrs = Math.floor(diff / 3600000);
+  if(mins < 1) return 'এইমাত্র';
+  if(mins < 60) return mins + ' মিনিট আগে';
+  if(hrs < 24) return hrs + ' ঘণ্টা আগে';
+  return Math.floor(hrs/24) + ' দিন আগে';
+}
+
+// Close panel on outside click
+document.addEventListener('click', e => {
+  const panel = document.getElementById('notifPanel');
+  const bell = document.getElementById('notifBell');
+  if(notifPanelOpen && !panel.contains(e.target) && !bell.contains(e.target)) {
+    notifPanelOpen = false;
+    panel.classList.remove('open');
+  }
+});
+function loadAllBookings() {
+  if(!currentUser) return;
+  document.getElementById('recentTable').innerHTML = '<div class="empty-state"><span class="spinner"></span> Loading...</div>';
+  db.collection('bookings')
+    .where('turfId','==', currentUser.id)
+    .get()
+    .then(snap => {
+      allTurfBookings = [];
+      snap.forEach(d => allTurfBookings.push({docId: d.id, ...d.data()}));
+      allTurfBookings.sort((a,b) => (b.createdAt?.seconds||0) - (a.createdAt?.seconds||0));
+      renderDashboard();
+      applyBookingFilter();
+      const activeSchedTab = document.getElementById('tab-schedule').classList.contains('active');
+      if(activeSchedTab) renderSchedule();
+    })
+    .catch(e => {
+      document.getElementById('recentTable').innerHTML = '<div class="empty-state" style="color:var(--red)">Error: '+e.message+'</div>';
+    });
+}
+
+// ── DASHBOARD ──
+function renderDashboard() {
+  document.getElementById('dashSub').textContent = currentUser.emoji + ' ' + currentUser.name;
+  const today = todayStr();
+  const active = allTurfBookings.filter(b => b.status !== 'cancelled');
+
+  // Today's stats
+  const todays = active.filter(b => b.date === today);
+  const todayRevenue = todays.reduce((s,b)=>s+(b.total||0),0);
+  document.getElementById('statTodayBookings').textContent = todays.length;
+  document.getElementById('statTodayRevenue').textContent = '৳'+todayRevenue.toLocaleString();
+  const now = new Date();
+  document.getElementById('statTodayDate').textContent = now.getDate()+' '+MONTHS[now.getMonth()]+' '+now.getFullYear();
+
+  // Month stats
+  const monthPrefix = today.slice(0,7); // yyyy-mm
+  const monthBookings = active.filter(b => (b.date||'').startsWith(monthPrefix));
+  document.getElementById('statMonthBookings').textContent = monthBookings.length;
+  document.getElementById('statMonthLabel').textContent = MONTHS[now.getMonth()]+' '+now.getFullYear();
+
+  // Due stats
+  const dueBookings = active.filter(b => (b.due||0) > 0);
+  const totalDue = dueBookings.reduce((s,b)=>s+(b.due||0),0);
+  document.getElementById('statTotalDue').textContent = '৳'+totalDue.toLocaleString();
+  document.getElementById('statDueCount').textContent = dueBookings.length + ' টি booking এ বকেয়া';
+
+  // Payout stats — Firstbook থেকে যা এখনো পাওনা (online advance, admin এখনো "Mark as Paid" করেনি)
+  const unpaidPayout = active.filter(b => (b.advance||0) > 0 && !b.payoutSettled);
+  const totalPayoutDue = unpaidPayout.reduce((s,b)=>s+(b.advance||0),0);
+  document.getElementById('statPayoutDue').textContent = '৳'+totalPayoutDue.toLocaleString();
+
+  // 7-day chart
+  render7DayChart(active);
+
+  // Recent table (last 8)
+  const recent = allTurfBookings.slice(0,8);
+  document.getElementById('recentCount').textContent = recent.length + ' সাম্প্রতিক';
+  if(recent.length) {
+    document.getElementById('recentTable').innerHTML = buildBookingTable(recent, false);
+  } else {
+    document.getElementById('recentTable').innerHTML = '<div class="empty-state">কোনো বুকিং নেই।</div>';
+  }
+}
+
+function render7DayChart(active) {
+  const days = [];
+  for(let i=6;i>=0;i--) {
+    const d = new Date();
+    d.setDate(d.getDate()-i);
+    const ds = dateToStr(d);
+    const dayBookings = active.filter(b=>b.date===ds);
+    const revenue = dayBookings.reduce((s,b)=>s+(b.total||0),0);
+    days.push({date: d, revenue, count: dayBookings.length});
+  }
+  const wrap = document.getElementById('weekChart');
+  if(!active.length) { wrap.innerHTML = '<div class="empty-chart">এখনো কোনো বুকিং তথ্য নেই</div>'; return; }
+  renderLineGraph(wrap, days, d => d.date.getDate()+' '+MONTHS[d.date.getMonth()].slice(0,3));
+}
+
+// Reusable premium blue line graph (SVG, smooth curve + gradient area + hover tooltip)
+function renderLineGraph(wrap, dayData, labelFn) {
+  const W = 700, H = 190, padX = 16, padY = 18;
+  const maxRev = Math.max(...dayData.map(d=>d.revenue), 1);
+  const n = dayData.length;
+  const stepX = (W - padX*2) / Math.max(1, n-1);
+
+  const points = dayData.map((d,i) => {
+    const x = padX + i*stepX;
+    const y = H - padY - ((d.revenue/maxRev) * (H - padY*2));
+    return { x, y, d };
+  });
+
+  let linePath = `M ${points[0].x} ${points[0].y}`;
+  for(let i=1;i<points.length;i++){
+    const midX = (points[i-1].x + points[i].x)/2;
+    linePath += ` Q ${points[i-1].x} ${points[i-1].y} ${midX} ${(points[i-1].y+points[i].y)/2}`;
+    linePath += ` Q ${midX} ${(points[i-1].y+points[i].y)/2} ${points[i].x} ${points[i].y}`;
+  }
+  const areaPath = `${linePath} L ${points[n-1].x} ${H-padY} L ${points[0].x} ${H-padY} Z`;
+  const gradId = 'lineGrad'+Math.random().toString(36).slice(2,8);
+
+  wrap.innerHTML = `
+    <div class="line-chart-wrap">
+      <svg class="line-chart-svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">
+        <defs>
+          <linearGradient id="${gradId}" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#3498db" stop-opacity="0.35"/>
+            <stop offset="100%" stop-color="#3498db" stop-opacity="0"/>
+          </linearGradient>
+        </defs>
+        <path d="${areaPath}" fill="url(#${gradId})" stroke="none"/>
+        <path d="${linePath}" fill="none" stroke="#3498db" stroke-width="3" stroke-linecap="round" style="filter:drop-shadow(0 2px 6px rgba(52,152,219,0.4))"/>
+        ${points.map(p => `<circle class="line-chart-point" cx="${p.x}" cy="${p.y}" r="4.5" fill="#3498db" stroke="#000" stroke-width="2"
+          onmouseover="showLineTooltip(event,'৳${p.d.revenue.toLocaleString()} · ${p.d.count} বুকিং')"
+          onmouseout="hideLineTooltip()"></circle>`).join('')}
+      </svg>
+      <div class="line-chart-tooltip" id="lineChartTooltip"></div>
+      <div class="line-chart-labels">
+        ${dayData.map(d => `<div class="line-chart-label">${labelFn(d)}</div>`).join('')}
+      </div>
+    </div>`;
+}
+
+window.showLineTooltip = function(e, text) {
+  const tip = document.getElementById('lineChartTooltip');
+  if(!tip) return;
+  const svgRect = e.target.ownerSVGElement.getBoundingClientRect();
+  const cx = e.target.getAttribute('cx'), cy = e.target.getAttribute('cy');
+  const svgW = e.target.ownerSVGElement.viewBox.baseVal.width;
+  const svgH = e.target.ownerSVGElement.viewBox.baseVal.height;
+  tip.style.left = (cx/svgW) * svgRect.width + 'px';
+  tip.style.top = (cy/svgH) * svgRect.height + 'px';
+  tip.textContent = text;
+  tip.classList.add('show');
+};
+window.hideLineTooltip = function() {
+  const tip = document.getElementById('lineChartTooltip');
+  if(tip) tip.classList.remove('show');
+};
+
+// ── TODAY'S SCHEDULE ──
+function changeScheduleDate(delta) {
+  scheduleDate.setDate(scheduleDate.getDate()+delta);
+  renderSchedule();
+}
+function setScheduleToday() {
+  scheduleDate = new Date();
+  renderSchedule();
+}
+function onSchedDateInput() {
+  const val = document.getElementById('schedDateInput').value;
+  if(val) {
+    const [y,m,d] = val.split('-');
+    scheduleDate = new Date(parseInt(y),parseInt(m)-1,parseInt(d));
+    renderSchedule();
+  }
+}
+
+function renderSchedule() {
+  if(!currentUser) return;
+  const ds = dateToStr(scheduleDate);
+  document.getElementById('schedDateLabel').textContent = scheduleDate.getDate()+' '+MONTHS[scheduleDate.getMonth()]+' '+scheduleDate.getFullYear();
+  document.getElementById('schedDateInput').value = ds;
+
+  const dayBookings = allTurfBookings.filter(b => b.date===ds && b.status!=='cancelled');
+  const bookingMap = {};
+  dayBookings.forEach(b => bookingMap[b.timeSlot] = b);
+
+  const now = new Date();
+  const grid = document.getElementById('schedGrid');
+  let html = '';
+  currentSlots.forEach(slot => {
+    const booking = bookingMap[slot];
+    const slotDt = new Date(scheduleDate.getFullYear(), scheduleDate.getMonth(), scheduleDate.getDate());
+    slotDt.setHours(slotToHour(slot), 0, 0, 0);
+    const isPast = slotDt <= now;
+
+    let cls = '', statusLabel = 'Available';
+    if(booking) {
+      if(booking.status==='manual') { cls='manual'; statusLabel = escapeHtml(booking.customerName) || 'Manual'; }
+      else if(booking.status==='pending') { cls='pending'; statusLabel = 'Pending'; }
+      else { cls='online'; statusLabel = escapeHtml(booking.customerName) || 'Booked'; }
+    } else if(isPast) {
+      cls='past'; statusLabel='Past';
+    }
+
+    const clickAttr = booking ? `onclick='openDetailFromSchedule("${booking.docId}")'` : '';
+    html += `<div class="sched-slot ${cls}" ${clickAttr}>
+      <div class="time">${slot}</div>
+      <div class="status">${statusLabel}</div>
+    </div>`;
+  });
+  grid.innerHTML = html;
+}
+
+window.openDetailFromSchedule = function(docId) {
+  const booking = allTurfBookings.find(b=>b.docId===docId);
+  if(booking) openDetailModal(docId, booking);
+};
+
+// ── MANUAL BOOKING ──
+function loadManualSlots() {
+  const dateVal = document.getElementById('mDate').value;
+  selSlots = [];
+  updateSelDisplay();
+  if(!dateVal) { document.getElementById('slotSection').style.display = 'none'; return; }
+  document.getElementById('slotSection').style.display = 'block';
+  const [y,m,d] = dateVal.split('-');
+  document.getElementById('mDateLabel').textContent = parseInt(d)+' '+MONTHS[parseInt(m)-1]+' '+y;
+  const grid = document.getElementById('slotGrid');
+  grid.innerHTML = '<div class="slot-loading"><span class="spinner"></span> Loading...</div>';
+
+  db.collection('bookings')
+    .where('date','==',dateVal)
+    .where('turfId','==',currentUser.id)
+    .get()
+    .then(snap => {
+      const booked = new Set();
+      snap.forEach(doc => { if(doc.data().status !== 'cancelled') booked.add(doc.data().timeSlot); });
+      grid.innerHTML = '';
+      const now = new Date();
+      currentSlots.forEach(s => {
+        const btn = document.createElement('div');
+        let hr = slotToHour(s);
+        const slotDt = new Date(parseInt(y), parseInt(m)-1, parseInt(d));
+        slotDt.setHours(hr, 0, 0, 0);
+        const isPast = slotDt <= now;
+        const isBooked = booked.has(s);
+        btn.className = 'slot-btn' + (isPast ? ' slot-past' : isBooked ? ' slot-booked' : '');
+        btn.textContent = s;
+        if(!isPast && !isBooked) {
+          btn.onclick = () => {
+            const idx = selSlots.indexOf(s);
+            if(idx === -1) { selSlots.push(s); btn.classList.add('slot-selected'); }
+            else { selSlots.splice(idx, 1); btn.classList.remove('slot-selected'); }
+            updateSelDisplay();
+          };
+        }
+        grid.appendChild(btn);
+      });
+    })
+    .catch(e => { grid.innerHTML = '<div style="color:var(--red);grid-column:1/-1;padding:12px">Error: '+e.message+'</div>'; });
+}
+
+function updateSelDisplay() {
+  const badge = document.getElementById('selCountBadge');
+  const listWrap = document.getElementById('selectedSlotsList');
+  const display = document.getElementById('selSlotsDisplay');
+  const btn = document.getElementById('blockBtn');
+  if(selSlots.length === 0) {
+    badge.style.display = 'none';
+    listWrap.style.display = 'none';
+    btn.disabled = true;
+    btn.textContent = '✓ Slot Block করো';
+  } else {
+    badge.style.display = 'inline-block';
+    badge.textContent = selSlots.length + ' selected';
+    listWrap.style.display = 'block';
+    display.innerHTML = selSlots.map(s =>
+      `<span style="background:var(--green-glow);border:1px solid var(--green-dark);color:var(--green);padding:3px 10px;border-radius:20px;font-size:12px;font-weight:600">${s}</span>`
+    ).join('');
+    btn.disabled = false;
+    btn.textContent = '✓ ' + selSlots.length + 'টি Slot Block করো';
+  }
+  // Auto-suggest total based on live pricing (manager can still edit before saving)
+  const suggestedTotal = selSlots.reduce((s,slot)=>s+getSlotPriceMgr(slot), 0);
+  document.getElementById('mTotal').value = suggestedTotal || '';
+  document.getElementById('mReceived').value = suggestedTotal || '';
+  updateDueHint();
+}
+
+function onManualAmountEdit() {
+  updateDueHint();
+}
+
+function updateDueHint() {
+  const total = Number(document.getElementById('mTotal').value) || 0;
+  const received = Number(document.getElementById('mReceived').value) || 0;
+  const due = Math.max(0, total - received);
+  const hint = document.getElementById('mDueHint');
+  if(total === 0) { hint.textContent = ''; return; }
+  hint.textContent = due > 0
+    ? `⚠️ বাকি (Due) থাকবে: ৳${due.toLocaleString()}`
+    : `✅ পুরো টাকা পাওয়া গেছে`;
+  hint.style.color = due > 0 ? 'var(--orange)' : 'var(--green)';
+}
+
+function saveBooking() {
+  const dateVal = document.getElementById('mDate').value;
+  const phone = document.getElementById('mPhone').value.trim() || 'N/A';
+  const name = document.getElementById('mName').value.trim() || 'Walk-in';
+  const note = document.getElementById('mNote').value.trim() || 'Manual booking';
+  const payMethod = document.getElementById('mPayMethod').value;
+  const totalEntered = Number(document.getElementById('mTotal').value) || 0;
+  let receivedEntered = Number(document.getElementById('mReceived').value) || 0;
+  if(!dateVal || selSlots.length === 0) { toast('Date ও কমপক্ষে একটা slot select করো', 'error'); return; }
+  if(totalEntered <= 0) { toast('Total Amount দাও (০ এর বেশি)', 'error'); return; }
+  if(receivedEntered > totalEntered) receivedEntered = totalEntered; // safety clamp
+  const turf = currentUser;
+  const btn = document.getElementById('blockBtn');
+  btn.disabled = true;
+  btn.textContent = 'Saving ' + selSlots.length + 'টি slot...';
+
+  // Split the entered total/received evenly across selected slots (last slot absorbs rounding remainder)
+  const n = selSlots.length;
+  const baseTotal = Math.floor(totalEntered / n);
+  const baseReceived = Math.floor(receivedEntered / n);
+
+  let saved = 0, failed = 0;
+  const promises = selSlots.map((slot, i) => {
+    const isLast = i === n-1;
+    const slotTotal = isLast ? (totalEntered - baseTotal*(n-1)) : baseTotal;
+    const slotReceived = isLast ? (receivedEntered - baseReceived*(n-1)) : baseReceived;
+    const ref = 'MB-' + Math.floor(Math.random()*9000+1000) + '-CML';
+    return db.collection('bookings').add({
+      refCode: ref,
+      turfId: turf.id, turfName: turf.name, turfAddr: turf.addr,
+      date: dateVal, timeSlot: slot,
+      phone, customerName: name, note,
+      total: slotTotal, advance: slotReceived, due: slotTotal - slotReceived,
+      payMethod, status: 'manual',
+      bookedBy: currentUser.name,
+      createdAt: firebase.firestore.Timestamp.now()
+    }).then(() => saved++)
+      .catch(() => failed++);
+  });
+
+  Promise.all(promises).then(() => {
+    if(failed === 0) toast('✅ ' + saved + 'টি slot successfully blocked!', 'success');
+    else toast('⚠️ ' + saved + 'টি blocked, ' + failed + 'টি failed', 'error');
+    document.getElementById('mName').value = '';
+    document.getElementById('mPhone').value = '';
+    document.getElementById('mNote').value = '';
+    document.getElementById('mTotal').value = '';
+    document.getElementById('mReceived').value = '';
+    document.getElementById('mPayMethod').value = 'Cash';
+    document.getElementById('mDueHint').textContent = '';
+    selSlots = [];
+    loadManualSlots();
+    loadAllBookings();
+  });
+}
+
+// ── ALL BOOKINGS TAB ──
+function applyBookingFilter() {
+  const type = document.getElementById('filterType').value;
+  const date = document.getElementById('filterBookDate').value;
+  const dueFilter = document.getElementById('filterDue').value;
+
+  const active = allTurfBookings.filter(b => b.status !== 'cancelled');
+  const totalAdv = active.reduce((s,b) => s + (b.advance||0), 0);
+  const totalDue = active.reduce((s,b) => s + (b.due||0), 0);
+  document.getElementById('statTotalBook').textContent = active.length;
+  document.getElementById('statAdvance').textContent = '৳' + totalAdv.toLocaleString();
+  document.getElementById('statDue').textContent = '৳' + totalDue.toLocaleString();
+  document.getElementById('bookingSubTitle').textContent = currentUser.emoji+' '+currentUser.name+' এর সব bookings';
+
+  let filtered = allTurfBookings.filter(b => {
+    if(type && b.status !== type) return false;
+    if(date && b.date !== date) return false;
+    if(dueFilter==='due' && !((b.due||0)>0 && b.status!=='cancelled')) return false;
+    if(dueFilter==='paid' && !((b.due||0)===0 || b.status==='cancelled')) return false;
+    return true;
+  });
+  document.getElementById('bookingCountLabel').textContent = filtered.length + ' booking' + (filtered.length!==1?'s':'');
+
+  const wrap = document.getElementById('bookingTableWrap');
+  if(!filtered.length) {
+    wrap.innerHTML = '<div class="empty-state">কোনো বুকিং নেই।</div>';
+    return;
+  }
+  wrap.innerHTML = buildBookingTable(filtered, true);
+}
+
+function clearBookingFilter() {
+  document.getElementById('filterType').value = '';
+  document.getElementById('filterBookDate').value = '';
+  document.getElementById('filterDue').value = '';
+  applyBookingFilter();
+}
+
+function buildBookingTable(bookings, showActions) {
+  let html = `<table><thead><tr>
+    <th>Ref</th><th>Date</th><th>Time</th><th>Customer</th><th>Phone</th>
+    <th>Total</th><th>Advance</th><th>Due</th><th>Type</th><th>Status</th>${showActions?'<th></th>':''}
+  </tr></thead><tbody>`;
+
+  bookings.forEach(b => {
+    const isManual = b.status === 'manual';
+    const isCancelled = b.status === 'cancelled';
+    const isPending = b.status === 'pending';
+    const isBkashPending = b.status === 'pending_payment';
+    const statusClass = isCancelled?'badge-cancelled':isBkashPending?'badge-bkash':isPending?'badge-pending':'badge-confirmed';
+    const statusLabel = isCancelled?'Cancelled':isBkashPending?'📱 bKash Verify':isPending?'Pending':'Confirmed';
+    const typeClass = isManual?'badge-manual':'badge-confirmed';
+
+    html += `<tr>
+      <td class="ref-code">${escapeHtml(b.refCode)||'—'}</td>
+      <td>${escapeHtml(b.date)||'—'}</td>
+      <td>${escapeHtml(b.timeSlot)||'—'}</td>
+      <td>${escapeHtml(b.customerName)||'—'}</td>
+      <td class="td-muted">${escapeHtml(b.phone)||'—'}</td>
+      <td style="font-weight:600">৳${b.total||0}</td>
+      <td style="font-weight:700;color:var(--green)">৳${b.advance||0}</td>
+      <td style="font-weight:600;color:var(--orange)">৳${b.due||0}</td>
+      <td><span class="badge ${typeClass}">${isManual?'Manual':'Online'}</span></td>
+      <td><span class="badge ${statusClass}">${statusLabel}</span></td>
+      ${showActions?`<td><button class="btn btn-blue" onclick='openDetailModal("${b.docId}")'>বিস্তারিত</button></td>`:''}
+    </tr>`;
+  });
+  html += '</tbody></table>';
+  return html;
+}
+
+// ── DETAIL MODAL ──
+window.openDetailModal = function(docId) {
+  const b = allTurfBookings.find(x=>x.docId===docId);
+  if(!b) return;
+  currentDetailDocId = docId;
+  currentDetailData = b;
+  const isCancelled = b.status==='cancelled';
+  const hasDue = (b.due||0) > 0 && !isCancelled;
+
+  document.getElementById('detailContent').innerHTML = `
+    <div class="info-row"><span class="il">Ref Code</span><span class="iv ref-code">${escapeHtml(b.refCode)||'—'}</span></div>
+    <div class="info-row"><span class="il">Turf</span><span class="iv">${currentUser.emoji} ${escapeHtml(b.turfName)||'—'}</span></div>
+    <div class="info-row"><span class="il">Date</span><span class="iv">${escapeHtml(b.date)||'—'}</span></div>
+    <div class="info-row"><span class="il">Time Slot</span><span class="iv">${escapeHtml(b.timeSlot)||'—'}</span></div>
+    <div class="info-row"><span class="il">Customer</span><span class="iv">${escapeHtml(b.customerName)||'—'}</span></div>
+    <div class="info-row"><span class="il">Phone</span><span class="iv">${escapeHtml(b.phone)||'—'}</span></div>
+    <div class="info-row"><span class="il">Total</span><span class="iv">৳${b.total||0}</span></div>
+    <div class="info-row"><span class="il">Advance Paid</span><span class="iv" style="color:var(--green)">৳${b.advance||0}</span></div>
+    <div class="info-row"><span class="il">Due</span><span class="iv" style="color:${hasDue?'var(--orange)':'var(--green)'}">৳${b.due||0} ${hasDue?'':'✓'}</span></div>
+    <div class="info-row"><span class="il">Payment Method</span><span class="iv">${escapeHtml(b.payMethod)||'—'}</span></div>
+    <div class="info-row"><span class="il">Type</span><span class="iv"><span class="badge ${b.status==='manual'?'badge-manual':'badge-confirmed'}">${b.status==='manual'?'Manual':'Online'}</span></span></div>
+    <div class="info-row"><span class="il">Status</span><span class="iv"><span class="badge ${isCancelled?'badge-cancelled':isBkashPending?'badge-bkash':b.status==='pending'?'badge-pending':'badge-confirmed'}">${statusLabel}</span></span></div>
+    ${b.bkashTxnId?`<div class="info-row"><span class="il">bKash TxnID</span><span class="iv" style="color:#ff6eb4;font-weight:700">${escapeHtml(b.bkashTxnId)}</span></div>`:''}
+    ${b.note?`<div class="info-row"><span class="il">Note</span><span class="iv td-muted">${escapeHtml(b.note)}</span></div>`:''}
+    ${isBkashPending?`
+    <div style="margin-top:14px;display:flex;gap:8px">
+      <button class="btn btn-green" style="flex:1" onclick="confirmBkashPayment('${b.docId}')">✅ Payment Confirmed</button>
+      <button onclick="rejectBkashPayment('${b.docId}')" style="flex:1;background:var(--red-bg);border:1px solid #5a1a1a;color:var(--red);padding:10px;border-radius:8px;cursor:pointer;font-weight:600">✕ Reject</button>
+    </div>`:''}
+  `;
+
+  const markBtn = document.getElementById('markPaidBtn');
+  const cancelBtn = document.getElementById('cancelDetailBtn');
+  markBtn.style.display = hasDue ? 'inline-block' : 'none';
+  cancelBtn.style.display = isCancelled ? 'none' : 'inline-block';
+
+  openModal('detailModal');
+};
+
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+window.markDuePaid = function() {
+  if(!currentDetailDocId) return;
+  const btn = document.getElementById('markPaidBtn');
+  btn.disabled = true; btn.textContent = 'Saving...';
+  db.collection('bookings').doc(currentDetailDocId).update({
+    advance: currentDetailData.total||0,
+    due: 0,
+    dueSettledAt: firebase.firestore.Timestamp.now(),
+    dueSettledBy: currentUser.name
+  }).then(()=>{
+    toast('✅ বকেয়া আদায় করা হয়েছে', 'success');
+    closeModal('detailModal');
+    btn.disabled=false; btn.textContent='✓ বকেয়া আদায় হয়েছে';
+    loadAllBookings();
+  }).catch(e=>{
+    toast('Error: '+e.message,'error');
+    btn.disabled=false; btn.textContent='✓ বকেয়া আদায় হয়েছে';
+  });
+};
+
+window.cancelDetailBooking = function() {
+  if(!currentDetailDocId) return;
+  if(!confirm('এই booking টা cancel করতে চাও?')) return;
+  const btn = document.getElementById('cancelDetailBtn');
+  btn.disabled = true; btn.textContent = 'Cancelling...';
+  db.collection('bookings').doc(currentDetailDocId).update({
+    status: 'cancelled',
+    cancelledAt: firebase.firestore.Timestamp.now(),
+    cancelledBy: currentUser.name
+  }).then(()=>{
+    toast('Booking cancelled', 'success');
+    closeModal('detailModal');
+    btn.disabled=false; btn.textContent='Cancel Booking';
+    loadAllBookings();
+  }).catch(e=>{
+    toast('Error: '+e.message,'error');
+    btn.disabled=false; btn.textContent='Cancel Booking';
+  });
+};
+
+document.querySelectorAll('.modal-overlay').forEach(o=>{
+  o.addEventListener('click', e => { if(e.target===o) o.classList.remove('open'); });
+});
+
+// ── TURF INFO ──
+function renderTurfInfo() {
+  document.getElementById('infoName').textContent = currentUser.emoji + ' ' + currentUser.name;
+  document.getElementById('infoAddr').textContent = currentUser.addr;
+  document.getElementById('infoPrice').textContent = '৳' + currentUser.price + ' /hr';
+
+  db.collection('prices').doc(currentUser.id).get().then(doc => {
+    if(!doc.exists) { document.getElementById('infoTimeCard').style.display='none'; return; }
+    const data = doc.data();
+    if(data.price) document.getElementById('infoPrice').textContent = '৳' + data.price + ' /hr';
+    if(data.timePricing && data.timeSlots && data.timeSlots.length) {
+      const card = document.getElementById('infoTimeCard');
+      card.style.display = 'block';
+      let html = '';
+      data.timeSlots.forEach(s => {
+        html += `<div class="info-row"><span class="il">${formatHour(s.from)} – ${formatHour(s.to)}</span><span class="iv" style="color:var(--green)">৳${s.price} /hr</span></div>`;
+      });
+      document.getElementById('infoTimeBody').innerHTML = html;
+    } else {
+      document.getElementById('infoTimeCard').style.display='none';
+    }
+  }).catch(()=>{ document.getElementById('infoTimeCard').style.display='none'; });
+}
+
+function formatHour(hhmm) {
+  const hr = parseInt(hhmm.split(':')[0]);
+  if(hr===0||hr===24) return '১২টা (রাত)';
+  if(hr<12) return hr+' টা (সকাল)';
+  if(hr===12) return '১২টা (দুপুর)';
+  return (hr-12)+' টা (বিকাল/সন্ধ্যা)';
+}
+
+// ══════════ TURF MANAGEMENT (Edit Turf + Slot Management) ══════════
+const FACILITY_OPTIONS = ['Floodlit','Parking','WiFi','Shower','Locker','Cafe','Changing Room','AC Changing Room','Indoor','Outdoor','Premium','Affordable','Kids Zone','Cafeteria'];
+const DEFAULT_SLOTS = ['07:00 AM','08:00 AM','09:00 AM','10:00 AM','11:00 AM','12:00 PM','01:00 PM','02:00 PM','03:00 PM','04:00 PM','05:00 PM','06:00 PM','07:00 PM','08:00 PM','09:00 PM','10:00 PM','11:00 PM','12:00 AM'];
+let mgrSlots = [];
+
+function loadTurfMgmt() {
+  document.getElementById('mgrFacWrap').innerHTML = FACILITY_OPTIONS.map(f=>`
+    <label class="fac-pill" data-f="${f}" onclick="toggleFacPill(this)" style="display:inline-flex;align-items:center;gap:5px;background:var(--card2);border:1px solid var(--border);border-radius:20px;padding:6px 13px;font-size:11.5px;cursor:pointer;color:var(--muted);transition:all .15s">${f}</label>
+  `).join('');
+  document.getElementById('mgrDesc').value = '';
+  document.getElementById('slotChips').innerHTML = '<span style="color:var(--muted);font-size:12px">Loading...</span>';
+
+  db.collection('prices').doc(currentUser.id).get().then(doc => {
+    const data = doc.exists ? doc.data() : {};
+    const facs = data.facilities || [];
+    document.querySelectorAll('#mgrFacWrap .fac-pill').forEach(el => {
+      setPillState(el, facs.includes(el.dataset.f));
+    });
+    document.getElementById('mgrDesc').value = data.description || '';
+    mgrSlots = (data.availableSlots && data.availableSlots.length) ? [...data.availableSlots] : [...DEFAULT_SLOTS];
+    renderSlotChips();
+  }).catch(()=>{
+    mgrSlots = [...DEFAULT_SLOTS];
+    renderSlotChips();
+  });
+}
+
+function setPillState(el, active) {
+  el.classList.toggle('active-pill', active);
+  el.style.background = active ? 'var(--green-glow)' : 'var(--card2)';
+  el.style.borderColor = active ? 'var(--green-dark)' : 'var(--border)';
+  el.style.color = active ? 'var(--green)' : 'var(--muted)';
+}
+function toggleFacPill(el) {
+  setPillState(el, !el.classList.contains('active-pill'));
+}
+
+function saveTurfEdit() {
+  const facs = [];
+  document.querySelectorAll('#mgrFacWrap .fac-pill.active-pill').forEach(el => facs.push(el.dataset.f));
+  const desc = document.getElementById('mgrDesc').value.trim();
+  db.collection('prices').doc(currentUser.id).set({ facilities: facs, description: desc }, {merge:true})
+    .then(()=>{
+      const msg = document.getElementById('editSaveMsg');
+      msg.style.display='block'; msg.style.color='var(--green)'; msg.textContent='✅ Save হয়ে গেছে!';
+      setTimeout(()=>msg.style.display='none', 2500);
+      toast('✅ Turf তথ্য আপডেট হয়েছে','success');
+    })
+    .catch(e=>{
+      const msg = document.getElementById('editSaveMsg');
+      msg.style.display='block'; msg.style.color='var(--red)'; msg.textContent='❌ Error: '+e.message;
+      toast('Error: '+e.message,'error');
+    });
+}
+
+function slotHourMgr(s){const p=s.split(' ');const[h]=p[0].split(':');const ap=p[1];return parseInt(h)+(ap==='PM'&&h!=='12'?12:0)-(ap==='AM'&&h==='12'?12:0);}
+
+function renderSlotChips() {
+  const wrap = document.getElementById('slotChips');
+  if(!mgrSlots.length) { wrap.innerHTML = '<div style="color:var(--muted);font-size:12px">কোনো স্লট নেই — নিচে থেকে যোগ করো</div>'; return; }
+  const sorted = [...mgrSlots].sort((a,b)=>slotHourMgr(a)-slotHourMgr(b));
+  wrap.innerHTML = sorted.map(s=>`
+    <span style="display:inline-flex;align-items:center;gap:6px;background:var(--green-glow);border:1px solid var(--green-dark);color:var(--green);border-radius:20px;padding:6px 8px 6px 13px;font-size:12px;font-weight:600">
+      ${s}
+      <button onclick="removeSlot('${s}')" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:15px;line-height:1;padding:0 3px" title="বাদ দাও">×</button>
+    </span>
+  `).join('');
+}
+
+function removeSlot(s) {
+  mgrSlots = mgrSlots.filter(x=>x!==s);
+  renderSlotChips();
+}
+
+function addSlot() {
+  const val = document.getElementById('newSlotTime').value;
+  if(!val) { toast('সময় select করো','error'); return; }
+  const [hStr, mStr] = val.split(':');
+  let h = parseInt(hStr);
+  const ap = h>=12 ? 'PM' : 'AM';
+  let h12 = h%12; if(h12===0) h12=12;
+  const label = String(h12).padStart(2,'0')+':'+mStr+' '+ap;
+  if(mgrSlots.includes(label)) { toast('এই slot টা আগে থেকেই আছে','error'); return; }
+  mgrSlots.push(label);
+  renderSlotChips();
+  document.getElementById('newSlotTime').value='';
+}
+
+function saveSlots() {
+  if(!mgrSlots.length) { toast('অন্তত ১টা slot রাখতে হবে','error'); return; }
+  mgrSlots.sort((a,b)=>slotHourMgr(a)-slotHourMgr(b));
+  db.collection('prices').doc(currentUser.id).set({ availableSlots: mgrSlots }, {merge:true})
+    .then(()=>{
+      currentSlots = [...mgrSlots]; // keep Schedule / Manual Booking in sync immediately
+      const msg = document.getElementById('slotSaveMsg');
+      msg.style.display='block'; msg.style.color='var(--green)'; msg.textContent='✅ Slot update হয়ে গেছে!';
+      setTimeout(()=>msg.style.display='none', 2500);
+      toast('✅ Slot সেভ হয়েছে','success');
+    })
+    .catch(e=>{
+      const msg = document.getElementById('slotSaveMsg');
+      msg.style.display='block'; msg.style.color='var(--red)'; msg.textContent='❌ Error: '+e.message;
+      toast('Error: '+e.message,'error');
+    });
+}
+
+// ══════════ PRICING (Base Price, Advance, Time-based Pricing) ══════════
+let prSlotCount = 0;
+
+function loadPricingTab() {
+  document.getElementById('prBasePrice').value = currentUser.price || '';
+  document.getElementById('prAdvance').value = 0;
+  document.getElementById('prTbp').checked = false;
+  document.getElementById('prTbpSection').style.display = 'none';
+  document.getElementById('prTbpSlider').style.background = '#333';
+  document.getElementById('prTbpThumb').style.background = '#666';
+  document.getElementById('prTbpThumb').style.left = '3px';
+  document.getElementById('prAdvanceErr').style.display = 'none';
+  document.getElementById('prSlotList').innerHTML = '';
+  prSlotCount = 0;
+
+  db.collection('prices').doc(currentUser.id).get().then(doc => {
+    const data = doc.exists ? doc.data() : {};
+    document.getElementById('prBasePrice').value = data.price || currentUser.price;
+    document.getElementById('prAdvance').value = data.advance || 0;
+    const hasTbp = data.timePricing || false;
+    document.getElementById('prTbp').checked = hasTbp;
+    togglePrTbp(hasTbp);
+    const slots = data.timeSlots || [];
+    slots.forEach(s => addPrSlotRow(s));
+  });
+}
+
+window.validatePrAdvance = function() {
+  const basePrice = Number(document.getElementById('prBasePrice').value) || 0;
+  const advEl = document.getElementById('prAdvance');
+  const errEl = document.getElementById('prAdvanceErr');
+  const val = Number(advEl.value);
+
+  if(val === 0) { errEl.style.display='none'; advEl.style.borderColor='var(--border)'; return true; }
+  if(val < 200) {
+    errEl.textContent = 'Minimum ৳200 (অথবা 0)';
+    errEl.style.display='block'; advEl.style.borderColor='var(--red)';
+    return false;
+  }
+  if(val > basePrice) {
+    errEl.textContent = `Maximum ৳${basePrice}`;
+    errEl.style.display='block'; advEl.style.borderColor='var(--red)';
+    return false;
+  }
+  errEl.style.display='none'; advEl.style.borderColor='#1a4a6a';
+  return true;
+};
+
+window.togglePrTbp = function(checked) {
+  document.getElementById('prTbpSection').style.display = checked ? 'block' : 'none';
+  document.getElementById('prTbpSlider').style.background = checked ? 'var(--green-dark)' : '#333';
+  document.getElementById('prTbpThumb').style.background = checked ? '#000' : '#666';
+  document.getElementById('prTbpThumb').style.left = checked ? '23px' : '3px';
+};
+
+function generatePrHourOptions(selected) {
+  const hours = [
+    {val:'07:00',label:'সকাল ৭টা'},{val:'08:00',label:'সকাল ৮টা'},{val:'09:00',label:'সকাল ৯টা'},
+    {val:'10:00',label:'সকাল ১০টা'},{val:'11:00',label:'সকাল ১১টা'},{val:'12:00',label:'দুপুর ১২টা'},
+    {val:'13:00',label:'দুপুর ১টা'},{val:'14:00',label:'দুপুর ২টা'},{val:'15:00',label:'বিকাল ৩টা'},
+    {val:'16:00',label:'বিকাল ৪টা'},{val:'17:00',label:'বিকাল ৫টা'},{val:'18:00',label:'সন্ধ্যা ৬টা'},
+    {val:'19:00',label:'সন্ধ্যা ৭টা'},{val:'20:00',label:'রাত ৮টা'},{val:'21:00',label:'রাত ৯টা'},
+    {val:'22:00',label:'রাত ১০টা'},{val:'23:00',label:'রাত ১১টা'},{val:'24:00',label:'রাত ১২টা'},
+  ];
+  return hours.map(h => `<option value="${h.val}" ${selected===h.val?'selected':''}>${h.label}</option>`).join('');
+}
+
+window.addPrSlotRow = function(slot) {
+  prSlotCount++;
+  const idx = prSlotCount;
+  const row = document.createElement('div');
+  row.id = 'prSlotRow-'+idx;
+  row.style.cssText = 'background:var(--black);border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-bottom:8px';
+  row.innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:8px;align-items:center">
+      <div>
+        <div style="font-size:10px;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px">From</div>
+        <select id="prFrom-${idx}" style="width:100%;background:var(--card2);border:1px solid var(--border);border-radius:6px;padding:6px 8px;color:var(--text);font-size:12px;font-family:var(--font);outline:none">
+          ${generatePrHourOptions(slot?.from||'14:00')}
+        </select>
+      </div>
+      <div>
+        <div style="font-size:10px;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px">To</div>
+        <select id="prTo-${idx}" style="width:100%;background:var(--card2);border:1px solid var(--border);border-radius:6px;padding:6px 8px;color:var(--text);font-size:12px;font-family:var(--font);outline:none">
+          ${generatePrHourOptions(slot?.to||'17:00')}
+        </select>
+      </div>
+      <div>
+        <div style="font-size:10px;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px">Price ৳</div>
+        <input type="number" id="prPrice-${idx}" value="${slot?.price||1500}" style="width:100%;background:var(--card2);border:1px solid var(--border);border-radius:6px;padding:6px 8px;color:var(--green);font-size:13px;font-family:'Bebas Neue',sans-serif;outline:none">
+      </div>
+      <button onclick="removePrSlotRow(${idx})" style="background:var(--red-bg);border:1px solid #5a1a1a;color:var(--red);padding:6px 10px;border-radius:6px;cursor:pointer;font-size:14px;margin-top:16px">✕</button>
+    </div>`;
+  document.getElementById('prSlotList').appendChild(row);
+};
+
+window.removePrSlotRow = function(idx) {
+  const row = document.getElementById('prSlotRow-'+idx);
+  if(row) row.remove();
+};
+
+window.savePricing = function() {
+  if(!validatePrAdvance()) { toast('Advance amount ঠিক করো', 'error'); return; }
+
+  const basePrice = Number(document.getElementById('prBasePrice').value);
+  const advance = Number(document.getElementById('prAdvance').value) || 0;
+  const hasTbp = document.getElementById('prTbp').checked;
+
+  const timeSlots = [];
+  if(hasTbp) {
+    document.querySelectorAll('[id^="prSlotRow-"]').forEach(row => {
+      const idx = row.id.split('-')[1];
+      const from = document.getElementById('prFrom-'+idx)?.value;
+      const to = document.getElementById('prTo-'+idx)?.value;
+      const price = Number(document.getElementById('prPrice-'+idx)?.value);
+      if(from && to && price) timeSlots.push({from, to, price});
+    });
+  }
+
+  const msg = document.getElementById('prSaveMsg');
+  db.collection('prices').doc(currentUser.id).set({
+    price: basePrice,
+    advance: advance,
+    timePricing: hasTbp,
+    timeSlots: timeSlots
+  }, {merge:true}).then(()=>{
+    msg.style.display='block'; msg.style.color='var(--green)'; msg.textContent='✅ Saved!';
+    setTimeout(()=>msg.style.display='none', 2500);
+    toast('✅ Pricing সেভ হয়েছে','success');
+  }).catch(e=>{
+    msg.style.display='block'; msg.style.color='var(--red)'; msg.textContent='❌ Error: '+e.message;
+    toast('Error: '+e.message,'error');
+  });
+};
+
+// ══════════ ANALYTICS ══════════
+let mgrAnalyticsRange = 30;
+
+function mgrDayKey(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+
+window.setMgrAnalyticsRange = function(range){
+  mgrAnalyticsRange = range;
+  document.querySelectorAll('.range-btn').forEach(b=>{
+    b.classList.toggle('active', String(b.dataset.range)===String(range));
+  });
+  renderMgrAnalytics();
+};
+
+function mgrGetRangeBookings(bookings){
+  if(mgrAnalyticsRange==='all') return bookings;
+  const cutoff = new Date();
+  cutoff.setDate(cutoff.getDate()-Number(mgrAnalyticsRange));
+  cutoff.setHours(0,0,0,0);
+  return bookings.filter(b=>{
+    if(!b.date) return false;
+    return new Date(b.date) >= cutoff;
+  });
+}
+
+function renderMgrAnalytics(){
+  const bookings = allTurfBookings || [];
+  const rangeLabel = mgrAnalyticsRange==='all' ? 'সব সময়ের হিসাব' : `গত ${mgrAnalyticsRange} দিনের হিসাব`;
+  document.getElementById('mgrAnalyticsRangeLabel').textContent = rangeLabel;
+
+  const inRange = mgrGetRangeBookings(bookings).filter(b=>b.status!=='cancelled');
+  const cancelledInRange = mgrGetRangeBookings(bookings).filter(b=>b.status==='cancelled');
+
+  renderMgrKpiRow(inRange, cancelledInRange, bookings);
+  renderMgrAnalyticsRevChart(bookings);
+  renderMgrStatusDonut(mgrGetRangeBookings(bookings));
+  renderMgrPaymentSplit(inRange);
+  renderMgrPeakHours(inRange);
+}
+window.renderMgrAnalytics = renderMgrAnalytics;
+
+function renderMgrKpiRow(inRange, cancelledInRange, allBookingsAllTime){
+  const totalBookings = inRange.length;
+  const revenue = inRange.reduce((s,b)=>s+(b.total||0),0);
+  const avgValue = totalBookings ? Math.round(revenue/totalBookings) : 0;
+  const totalDue = inRange.reduce((s,b)=>s+(b.due||0),0);
+  const cancelRate = (totalBookings+cancelledInRange.length) ? Math.round((cancelledInRange.length/(totalBookings+cancelledInRange.length))*100) : 0;
+
+  document.getElementById('mgrAkTotal').textContent = totalBookings;
+  document.getElementById('mgrAkRevenue').textContent = '৳'+revenue.toLocaleString();
+  document.getElementById('mgrAkAvgValue').textContent = '৳'+avgValue.toLocaleString();
+  document.getElementById('mgrAkCancelRate').textContent = cancelRate+'%';
+  document.getElementById('mgrAkCancelSub').textContent = cancelledInRange.length+' টি cancelled';
+  document.getElementById('mgrAkDue').textContent = '৳'+totalDue.toLocaleString();
+
+  if(mgrAnalyticsRange!=='all'){
+    const days = Number(mgrAnalyticsRange);
+    const now = new Date();
+    const prevStart = new Date(); prevStart.setDate(now.getDate()-days*2);
+    const prevEnd = new Date(); prevEnd.setDate(now.getDate()-days);
+    const prevBookings = allBookingsAllTime.filter(b=>{
+      if(!b.date||b.status==='cancelled') return false;
+      const d = new Date(b.date);
+      return d>=prevStart && d<prevEnd;
+    });
+    const prevRevenue = prevBookings.reduce((s,b)=>s+(b.total||0),0);
+    const bookingDelta = prevBookings.length ? Math.round(((totalBookings-prevBookings.length)/prevBookings.length)*100) : (totalBookings>0?100:0);
+    const revDelta = prevRevenue ? Math.round(((revenue-prevRevenue)/prevRevenue)*100) : (revenue>0?100:0);
+    mgrSetDelta('mgrAkTotalDelta', bookingDelta, 'আগের '+days+' দিনের তুলনায়');
+    mgrSetDelta('mgrAkRevenueDelta', revDelta, 'আগের '+days+' দিনের তুলনায়');
+  } else {
+    document.getElementById('mgrAkTotalDelta').textContent = 'সব সময়';
+    document.getElementById('mgrAkRevenueDelta').textContent = 'সব সময়';
+  }
+}
+
+function mgrSetDelta(elId, pct, sub){
+  const el = document.getElementById(elId);
+  const sign = pct>0?'+':'';
+  const cls = pct>0?'up':pct<0?'down':'';
+  const arrow = pct>0?'▲':pct<0?'▼':'—';
+  el.className = 'kpi-mini-delta '+cls;
+  el.textContent = `${arrow} ${sign}${pct}% ${sub}`;
+}
+
+function renderMgrAnalyticsRevChart(bookings){
+  const wrap = document.getElementById('mgrAnalyticsRevChart');
+  const active = bookings.filter(b=>b.status!=='cancelled');
+  if(!active.length){ wrap.innerHTML = '<div class="empty-chart">এখনো কোনো বুকিং তথ্য নেই</div>'; return; }
+
+  let numDays = mgrAnalyticsRange==='all' ? 60 : Math.min(Number(mgrAnalyticsRange),60);
+  if(mgrAnalyticsRange==='all'){
+    const dates = active.map(b=>new Date(b.date)).filter(d=>!isNaN(d));
+    if(dates.length){
+      const min = new Date(Math.min(...dates));
+      numDays = Math.max(7, Math.min(60, Math.ceil((new Date()-min)/(1000*60*60*24))+1));
+    }
+  }
+
+  const days = [];
+  const today = new Date();
+  for(let i=numDays-1;i>=0;i--){ const d=new Date(today); d.setDate(today.getDate()-i); days.push(d); }
+  const dayData = days.map(d=>{
+    const key = mgrDayKey(d);
+    const dayBookings = active.filter(b=>b.date===key);
+    return { date:d, revenue: dayBookings.reduce((s,b)=>s+(b.total||0),0), count: dayBookings.length };
+  });
+  const maxRev = Math.max(...dayData.map(d=>d.revenue),1);
+  const maxCount = Math.max(...dayData.map(d=>d.count),1);
+  const showLabelEvery = Math.ceil(numDays/10);
+
+  wrap.innerHTML = `
+    <div class="rev-chart-wrap">
+      <div class="rev-bars">
+        ${dayData.map((d,i)=>{
+          const h = Math.max(3, Math.round((d.revenue/maxRev)*150));
+          const dotTop = 170 - Math.round((d.count/maxCount)*150);
+          const showLabel = (i%showLabelEvery===0) || i===dayData.length-1;
+          return `<div class="rev-bar-col">
+            <div class="rev-bar-tooltip">${d.date.getDate()}/${d.date.getMonth()+1}: ৳${d.revenue.toLocaleString()} · ${d.count} booking</div>
+            <div style="position:absolute;top:${dotTop}px;width:6px;height:6px;border-radius:50%;background:#3498db;z-index:3;box-shadow:0 0 0 2px var(--card)"></div>
+            <div class="rev-bar" style="height:${h}px"></div>
+            <div class="rev-bar-label">${showLabel ? (d.date.getDate()+'/'+(d.date.getMonth()+1)) : ''}</div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+}
+
+function renderMgrStatusDonut(bookings){
+  const wrap = document.getElementById('mgrStatusDonut');
+  if(!bookings.length){ wrap.innerHTML = '<div class="empty-chart">এই সময়ে কোনো বুকিং নেই</div>'; return; }
+  const confirmed = bookings.filter(b=>b.status==='confirmed').length;
+  const manual = bookings.filter(b=>b.status==='manual').length;
+  const pending = bookings.filter(b=>b.status==='pending').length;
+  const cancelled = bookings.filter(b=>b.status==='cancelled').length;
+  const total = confirmed+manual+pending+cancelled || 1;
+
+  const segments = [
+    {label:'Confirmed', val:confirmed, color:'#00E676'},
+    {label:'Manual', val:manual, color:'#3498db'},
+    {label:'Pending', val:pending, color:'#f39c12'},
+    {label:'Cancelled', val:cancelled, color:'#e74c3c'},
+  ].filter(s=>s.val>0);
+
+  let acc = 0;
+  const gradParts = segments.map(s=>{
+    const start = (acc/total)*360;
+    acc += s.val;
+    const end = (acc/total)*360;
+    return `${s.color} ${start}deg ${end}deg`;
+  });
+
+  wrap.innerHTML = `
+    <div class="donut-wrap">
+      <div class="donut" style="background:conic-gradient(${gradParts.join(',')})">
+        <div class="donut-hole">
+          <div class="donut-hole-val">${total}</div>
+          <div class="donut-hole-lbl">Bookings</div>
+        </div>
+      </div>
+      <div class="donut-legend">
+        ${segments.map(s=>`
+          <div class="donut-legend-item">
+            <span class="donut-legend-dot" style="background:${s.color}"></span>
+            ${s.label} <span class="donut-legend-val">— ${s.val} (${Math.round((s.val/total)*100)}%)</span>
+          </div>`).join('')}
+      </div>
+    </div>`;
+}
+
+function renderMgrPaymentSplit(bookings){
+  const wrap = document.getElementById('mgrPaymentSplit');
+  if(!bookings.length){ wrap.innerHTML = '<div class="empty-chart">এই সময়ে কোনো বুকিং নেই</div>'; return; }
+  const online = bookings.filter(b=>(b.advance||0)>0).length;
+  const cash = bookings.filter(b=>!(b.advance>0)).length;
+  const total = online+cash || 1;
+
+  wrap.innerHTML = `
+    <div class="donut-wrap">
+      <div class="donut" style="background:conic-gradient(#00E676 0deg ${(online/total)*360}deg, #f39c12 ${(online/total)*360}deg 360deg)">
+        <div class="donut-hole">
+          <div class="donut-hole-val">${Math.round((online/total)*100)}%</div>
+          <div class="donut-hole-lbl">Online</div>
+        </div>
+      </div>
+      <div class="donut-legend">
+        <div class="donut-legend-item"><span class="donut-legend-dot" style="background:#00E676"></span> Online Advance <span class="donut-legend-val">— ${online} (${Math.round((online/total)*100)}%)</span></div>
+        <div class="donut-legend-item"><span class="donut-legend-dot" style="background:#f39c12"></span> Cash at Turf <span class="donut-legend-val">— ${cash} (${Math.round((cash/total)*100)}%)</span></div>
+      </div>
+    </div>`;
+}
+
+function renderMgrPeakHours(bookings){
+  const wrap = document.getElementById('mgrPeakHours');
+  if(!bookings.length){ wrap.innerHTML = '<div class="empty-chart">এই সময়ে কোনো বুকিং নেই</div>'; return; }
+  const hourCounts = {};
+  bookings.forEach(b=>{
+    if(!b.timeSlot) return;
+    const hr = slotToHour(String(b.timeSlot).split(',')[0].trim());
+    if(hr===null||isNaN(hr)) return;
+    hourCounts[hr] = (hourCounts[hr]||0)+1;
+  });
+  const maxCount = Math.max(...Object.values(hourCounts), 1);
+  const hours = [7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,0];
+
+  wrap.innerHTML = `
+    <div class="heatmap-grid">
+      ${hours.map(h=>{
+        const c = hourCounts[h]||0;
+        const intensity = c/maxCount;
+        const bg = intensity===0 ? 'var(--card2)' : `rgba(0,230,118,${0.15+intensity*0.75})`;
+        const label12 = h===0 ? '12AM' : h>12 ? (h-12)+'PM' : h===12 ? '12PM' : h+'AM';
+        return `<div>
+          <div class="heat-cell" style="background:${bg}" title="${label12}: ${c} bookings">${c||''}</div>
+          <div class="heat-cell-label">${label12}</div>
+        </div>`;
+      }).join('')}
+    </div>`;
+}
+
+// ══════════ BKASH PAYMENT VERIFICATION ══════════
+window.confirmBkashPayment = function(docId) {
+  if(!confirm('bKash payment confirmed? Booking টা confirm করা হবে।')) return;
+  db.collection('bookings').doc(docId).update({
+    status: 'confirmed',
+    paymentStatus: 'completed',
+    paymentVerified: true,
+    confirmedBy: currentUser.name,
+    confirmedAt: firebase.firestore.Timestamp.now(),
+  }).then(() => {
+    toast('✅ Payment confirmed, booking confirmed!', 'success');
+    closeModal('detailModal');
+    loadAllBookings();
+  }).catch(e => toast('❌ Error: ' + e.message, 'error'));
+};
+
+window.rejectBkashPayment = function(docId) {
+  if(!confirm('এই booking টা reject করবে? Customer কে manually জানাতে হবে।')) return;
+  db.collection('bookings').doc(docId).update({
+    status: 'cancelled',
+    paymentStatus: 'rejected',
+    rejectedBy: currentUser.name,
+    rejectedAt: firebase.firestore.Timestamp.now(),
+  }).then(() => {
+    toast('Booking reject করা হয়েছে', 'success');
+    closeModal('detailModal');
+    loadAllBookings();
+  }).catch(e => toast('❌ Error: ' + e.message, 'error'));
+};
+
+window.changeMgrPassword = function(){
+  const oldPass = document.getElementById('mgrOldPass').value;
+  const newPass = document.getElementById('mgrNewPass').value;
+  const newPass2 = document.getElementById('mgrNewPass2').value;
+  const msg = document.getElementById('mgrPassMsg');
+  msg.style.display = 'none';
+
+  // Verify current password matches (either Firestore-set or legacy hardcoded)
+  const currentSaved = currentUser.managerPassword || Object.keys(PASSWORDS).find(p => PASSWORDS[p]===currentUser.id);
+  if(oldPass !== currentSaved) {
+    msg.style.display='block'; msg.style.color='var(--red)'; msg.textContent='❌ বর্তমান password ভুল';
+    return;
+  }
+  if(newPass.length < 6) {
+    msg.style.display='block'; msg.style.color='var(--red)'; msg.textContent='❌ নতুন password কমপক্ষে ৬ অক্ষরের হতে হবে';
+    return;
+  }
+  if(newPass !== newPass2) {
+    msg.style.display='block'; msg.style.color='var(--red)'; msg.textContent='❌ দুইটা নতুন password মিলছে না';
+    return;
+  }
+  db.collection('prices').doc(currentUser.id).set({ managerPassword: newPass }, {merge:true})
+    .then(()=>{
+      currentUser.managerPassword = newPass;
+      document.getElementById('mgrOldPass').value = '';
+      document.getElementById('mgrNewPass').value = '';
+      document.getElementById('mgrNewPass2').value = '';
+      msg.style.display='block'; msg.style.color='var(--green)'; msg.textContent='✅ Password বদলে গেছে! পরের বার login এ নতুনটা ব্যবহার করো।';
+      toast('✅ Password successfully বদলানো হয়েছে','success');
+    })
+    .catch(e=>{
+      msg.style.display='block'; msg.style.color='var(--red)'; msg.textContent='❌ Error: '+e.message;
+    });
+};
+
+// Register PWA service worker (network-first — always shows the latest deploy when online)
+if('serviceWorker' in navigator){
+  window.addEventListener('load', ()=>{
+    navigator.serviceWorker.register('/sw-manager.js').catch(()=>{});
+  });
+}
+</script>
+</body>
+</html>
