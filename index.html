@@ -1143,6 +1143,56 @@ input[type="date"],input[type="time"]{color-scheme:dark}
 .tab-restricted{pointer-events:none;opacity:.35}
 @media(max-width:600px){.staff-grid{grid-template-columns:1fr}.staff-form-grid{grid-template-columns:1fr}}
 
+
+/* ═══════════════════════════════════════════════
+   MOBILE MANAGEMENT — ENHANCED
+═══════════════════════════════════════════════ */
+
+/* Native mobile manual booking sheet */
+.mob-manual-sheet{position:fixed;inset:0;background:var(--bg);z-index:400;transform:translateX(100%);transition:transform .25s cubic-bezier(.25,.8,.25,1);overflow-y:auto;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column}
+.mob-manual-sheet.open{transform:translateX(0)}
+.mob-sheet-bar{position:sticky;top:0;background:var(--card);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;padding:0 14px;height:52px;z-index:1;flex-shrink:0}
+.mob-sheet-bar-back{background:transparent;border:none;color:var(--green);font-size:20px;cursor:pointer;padding:0;line-height:1}
+.mob-sheet-bar-title{font-size:14px;font-weight:700;color:var(--text)}
+.mob-sheet-body{padding:16px;flex:1}
+.mob-sheet-save-btn{width:100%;padding:14px;background:var(--green);border:none;border-radius:10px;color:#000;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font);margin-top:8px}
+.mob-sheet-save-btn:disabled{opacity:.6;cursor:not-allowed}
+
+/* Mobile slot management */
+.mob-slot-mgmt-row{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;border-bottom:1px solid var(--border);background:var(--card)}
+.mob-slot-mgmt-time{font-size:13px;font-weight:700;color:var(--text)}
+.mob-slot-toggle{position:relative;width:44px;height:24px;cursor:pointer;display:inline-block}
+.mob-slot-toggle input{opacity:0;width:0;height:0;position:absolute}
+.mob-slot-toggle-track{position:absolute;inset:0;border-radius:24px;background:#3a1a1a;transition:.3s}
+.mob-slot-toggle-thumb{position:absolute;width:18px;height:18px;background:#e74c3c;border-radius:50%;top:3px;left:3px;transition:.3s}
+.mob-slot-toggle input:checked + .mob-slot-toggle-track{background:var(--green-dark)}
+.mob-slot-toggle input:checked ~ .mob-slot-toggle-thumb{left:23px;background:#000}
+
+/* bKash pending section */
+.mob-bkash-card{background:rgba(42,0,24,0.6);border:1px solid rgba(255,110,180,0.3);border-radius:10px;padding:13px;margin-bottom:10px}
+.mob-bkash-head{font-size:11px;font-weight:700;color:#ff6eb4;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.mob-bkash-txn{font-size:11px;color:var(--muted);margin-top:4px}
+.mob-bkash-txn strong{color:#ff6eb4;font-family:monospace}
+
+/* Mobile stats mini */
+.mob-stat-row{display:flex;gap:8px;margin-bottom:12px}
+.mob-stat-mini{flex:1;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center}
+.mob-stat-mini-val{font-family:var(--font-head);font-size:20px;color:var(--text);line-height:1}
+.mob-stat-mini-lbl{font-size:9px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-top:4px;font-weight:700}
+
+/* Mobile section divider */
+.mob-divider{height:8px;background:rgba(0,0,0,0.3);margin:0 -14px;border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+
+/* Swipe hint */
+.mob-swipe-hint{font-size:10px;color:var(--muted);text-align:center;padding:8px;opacity:.6}
+
+/* Mobile tab badge */
+.mob-nav-badge{position:absolute;top:-3px;right:-3px;min-width:16px;height:16px;border-radius:8px;background:var(--red);color:#fff;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 3px}
+.mob-nav-item{position:relative}
+
+/* Improved attention cards */
+.mob-attention.critical{border-color:rgba(231,76,60,0.35);background:rgba(231,76,60,0.06)}
+
 </style>
 </head>
 <body>
@@ -1260,6 +1310,7 @@ input[type="date"],input[type="time"]{color-scheme:dark}
 
     <!-- TOP BAR -->
     <div class="top-bar" id="topBar">
+      <button id="mobReturnBtn" onclick="mobReturnToMobile()" style="display:none;align-items:center;gap:6px;padding:6px 12px;background:var(--green-glow);border:1px solid var(--green-dark);border-radius:8px;color:var(--green);font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font)">← Mobile</button>
       <div class="top-bar-left">
         <button class="tb-icon-btn" id="mobMenuBtn" onclick="document.getElementById('sidebar').classList.toggle('mob-open')" style="display:none">
           ☰
@@ -3500,16 +3551,7 @@ window.mobCalAddBooking = function() {
   mobGoDesktopTab('manual');
 };
 
-window.mobCalBook = function(slot, date) {
-  // Switch to manual tab with pre-filled slot
-  mobGoDesktopTab('manual');
-  setTimeout(()=>{
-    const dateEl = document.getElementById('manDate');
-    const slotEl = document.getElementById('manTime');
-    if(dateEl) dateEl.value = date;
-    if(slotEl) slotEl.value = slot;
-  }, 300);
-};
+window.mobCalBook = function(slot, date) { openMobManualSheet(date, slot); };
 
 // ── NOTIFICATIONS ─────────────────────────────────────
 function mobRenderNotifications() {
@@ -3572,13 +3614,17 @@ window.mobCloseQA = function() {
 
 // ── Go to desktop tab (for features not on mobile) ───
 window.mobGoDesktopTab = function(tabName) {
-  // On mobile, show a message that we're switching to desktop view
-  if(confirm('This feature opens in the full dashboard.\nSwitch to desktop view?')) {
-    document.getElementById('mobApp').style.display='none';
-    document.getElementById('appLayout').style.display='flex';
-    const navEl = document.querySelector(`.nav-item[onclick*="'${tabName}'"]`);
-    showTab(tabName, navEl);
-  }
+  document.getElementById('mobApp').style.display='none';
+  document.getElementById('appLayout').style.display='flex';
+  document.getElementById('mobReturnBtn').style.display='flex';
+  const navEl = document.querySelector(`.nav-item[onclick*="'${tabName}'"]`);
+  showTab(tabName, navEl);
+};
+
+window.mobReturnToMobile = function() {
+  document.getElementById('mobApp').style.display='flex';
+  document.getElementById('appLayout').style.display='none';
+  document.getElementById('mobReturnBtn').style.display='none';
 };
 
 // ── Hook into data refresh ────────────────────────────
@@ -5446,9 +5492,14 @@ if('serviceWorker' in navigator){
           </div>
         </div>
       </div>
+      <div class="mob-more-row" onclick="openMobSlotSheet()">
+        <div class="mob-more-ico">🚫</div>
+        <div><div class="mob-more-label">Manage Slots</div><div class="mob-more-sub">Block or enable time slots</div></div>
+        <div class="mob-more-arr">›</div>
+      </div>
       <div class="mob-more-row" onclick="mobGoDesktopTab('pricing')">
         <div class="mob-more-ico">🏷️</div>
-        <div><div class="mob-more-label">Pricing & Slots</div><div class="mob-more-sub">Set prices and available hours</div></div>
+        <div><div class="mob-more-label">Pricing Settings</div><div class="mob-more-sub">Set prices (opens full dashboard)</div></div>
         <div class="mob-more-arr">›</div>
       </div>
       <div class="mob-more-row" onclick="mobGoDesktopTab('turfmgmt')">
@@ -5509,15 +5560,15 @@ if('serviceWorker' in navigator){
   <div class="mob-sheet-handle"></div>
   <div class="mob-sheet-head">Quick Actions</div>
   <div class="mob-qa-grid">
-    <div class="mob-qa-cell" onclick="mobCloseQA();goManualToday()">
+    <div class="mob-qa-cell" onclick="mobCloseQA();openMobManualSheet(null,null,'Walk-in Booking')">
       <div class="mob-qa-cell-icon">✏️</div>
       <div class="mob-qa-cell-label">Walk-in Booking</div>
     </div>
-    <div class="mob-qa-cell" onclick="mobCloseQA();mobGoDesktopTab('manual')">
+    <div class="mob-qa-cell" onclick="mobCloseQA();openMobManualSheet(null,null,'Manual Booking')">
       <div class="mob-qa-cell-icon">📋</div>
       <div class="mob-qa-cell-label">Manual Booking</div>
     </div>
-    <div class="mob-qa-cell" onclick="mobCloseQA();mobGoDesktopTab('pricing')">
+    <div class="mob-qa-cell" onclick="mobCloseQA();openMobSlotSheet()">
       <div class="mob-qa-cell-icon">🚫</div>
       <div class="mob-qa-cell-label">Manage Slots</div>
     </div>
@@ -6809,6 +6860,295 @@ window.renderActivityLog = async function() {
       wrap.innerHTML=`<div style="font-size:12px;color:var(--red);padding:20px">Error: ${e.message}</div>`;
     }
   }
+};
+</script>
+
+
+<!-- MOBILE MANUAL BOOKING SHEET -->
+<div class="mob-manual-sheet" id="mobManualSheet">
+  <div class="mob-sheet-bar">
+    <button class="mob-sheet-bar-back" onclick="closeMobManualSheet()">‹</button>
+    <div class="mob-sheet-bar-title" id="mobManualSheetTitle">New Booking</div>
+  </div>
+  <div class="mob-sheet-body">
+    <div class="mob-stat-row" id="mobManualSlotInfo" style="display:none">
+      <div class="mob-stat-mini" style="background:var(--green-glow);border-color:var(--green-border)">
+        <div class="mob-stat-mini-val green" id="mobManualSlotDate" style="font-size:14px">—</div>
+        <div class="mob-stat-mini-lbl">Date</div>
+      </div>
+      <div class="mob-stat-mini" style="background:var(--green-glow);border-color:var(--green-border)">
+        <div class="mob-stat-mini-val green" id="mobManualSlotTime" style="font-size:14px">—</div>
+        <div class="mob-stat-mini-lbl">Slot</div>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Date *</label>
+      <input type="date" class="form-input" id="mobManDate">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Time Slot *</label>
+      <select class="form-input" id="mobManSlot"></select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Customer / Team Name *</label>
+      <input type="text" class="form-input" id="mobManName" placeholder="Name or team">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Phone *</label>
+      <input type="tel" class="form-input" id="mobManPhone" placeholder="01XXXXXXXXX" maxlength="11">
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div class="form-group">
+        <label class="form-label">Total (৳)</label>
+        <input type="number" class="form-input" id="mobManTotal" placeholder="0" oninput="mobCalcDue()">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Advance Paid (৳)</label>
+        <input type="number" class="form-input" id="mobManAdv" placeholder="0" oninput="mobCalcDue()">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Due Amount</label>
+      <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-family:var(--font-head);font-size:20px" id="mobManDueDisplay" style="color:var(--orange)">৳0</div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Payment Method</label>
+      <select class="form-input" id="mobManMethod">
+        <option>Cash</option><option>bKash</option><option>Nagad</option><option>Bank Transfer</option><option>Card</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Source</label>
+      <select class="form-input" id="mobManSource">
+        <option value="walk_in">Walk-in</option>
+        <option value="phone">Phone</option>
+        <option value="whatsapp">WhatsApp</option>
+        <option value="facebook">Facebook</option>
+        <option value="firstbook">Firstbook</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Note (optional)</label>
+      <input type="text" class="form-input" id="mobManNote" placeholder="Any note…">
+    </div>
+    <div id="mobManMsg" style="font-size:12px;color:var(--red);display:none;margin-bottom:8px"></div>
+    <button class="mob-sheet-save-btn" id="mobManSaveBtn" onclick="saveMobManualBooking()">Confirm Booking →</button>
+    <div class="mob-swipe-hint">Swipe right to close</div>
+  </div>
+</div>
+
+<!-- MOBILE SLOT MANAGEMENT SHEET -->
+<div class="mob-manual-sheet" id="mobSlotMgmtSheet">
+  <div class="mob-sheet-bar">
+    <button class="mob-sheet-bar-back" onclick="closeMobSlotSheet()">‹</button>
+    <div class="mob-sheet-bar-title">Manage Slots</div>
+  </div>
+  <div class="mob-sheet-body" style="padding:0">
+    <div style="padding:12px 14px;font-size:12px;color:var(--muted);border-bottom:1px solid var(--border)">
+      Toggle available time slots. Disabled slots cannot be booked.
+    </div>
+    <div id="mobSlotMgmtList"></div>
+    <div style="padding:16px 14px">
+      <button class="mob-sheet-save-btn" onclick="saveMobSlots()">Save Changes →</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+// MOBILE MANAGEMENT — ENHANCED
+// ═══════════════════════════════════════════════════════
+
+// ── Mobile Manual Booking Sheet ─────────────────────────
+window.openMobManualSheet = function(date, slot, title) {
+  const sheet = document.getElementById('mobManualSheet');
+  const cu    = window.currentUser;
+  if(!sheet) return;
+
+  // Title
+  document.getElementById('mobManualSheetTitle').textContent = title || 'New Booking';
+
+  // Pre-fill date & slot
+  const dateEl = document.getElementById('mobManDate');
+  const slotEl = document.getElementById('mobManSlot');
+  const infoEl = document.getElementById('mobManualSlotInfo');
+
+  // Populate slot dropdown from currentSlots
+  const slots = window.currentSlots || window.ALL_SLOTS || [];
+  slotEl.innerHTML = slots.map(s => `<option value="${s}" ${s===slot?'selected':''}>${s}</option>`).join('');
+
+  const today = (window.todayStr || (() => new Date().toISOString().slice(0,10)))();
+  if(dateEl) dateEl.value = date || today;
+
+  // Show slot info chip if pre-filled
+  if(date && slot && infoEl) {
+    infoEl.style.display = 'flex';
+    document.getElementById('mobManualSlotDate').textContent = date;
+    document.getElementById('mobManualSlotTime').textContent = slot;
+  } else if(infoEl) {
+    infoEl.style.display = 'none';
+  }
+
+  // Auto-fill price
+  const price = cu?.price || 0;
+  const totalEl = document.getElementById('mobManTotal');
+  const advEl   = document.getElementById('mobManAdv');
+  if(totalEl) totalEl.value = price;
+  if(advEl)   advEl.value   = 0;
+
+  // Clear fields
+  ['mobManName','mobManPhone','mobManNote'].forEach(id => {
+    const el = document.getElementById(id); if(el) el.value = '';
+  });
+  const dueEl = document.getElementById('mobManDueDisplay');
+  if(dueEl){ dueEl.textContent = '৳'+(price||0).toLocaleString(); dueEl.style.color = price>0?'var(--orange)':'var(--text)'; }
+  const msgEl = document.getElementById('mobManMsg');
+  if(msgEl) msgEl.style.display = 'none';
+
+  sheet.classList.add('open');
+  setTimeout(() => document.getElementById('mobManName')?.focus(), 300);
+};
+
+window.closeMobManualSheet = function() {
+  document.getElementById('mobManualSheet')?.classList.remove('open');
+};
+
+window.mobCalcDue = function() {
+  const total = parseFloat(document.getElementById('mobManTotal')?.value) || 0;
+  const adv   = parseFloat(document.getElementById('mobManAdv')?.value)   || 0;
+  const due   = Math.max(0, total - adv);
+  const el    = document.getElementById('mobManDueDisplay');
+  if(el){ el.textContent = '৳'+due.toLocaleString(); el.style.color = due>0?'var(--orange)':'var(--green)'; }
+};
+
+window.saveMobManualBooking = async function() {
+  const date   = document.getElementById('mobManDate')?.value;
+  const slot   = document.getElementById('mobManSlot')?.value;
+  const name   = (document.getElementById('mobManName')?.value  || '').trim();
+  const phone  = (document.getElementById('mobManPhone')?.value || '').trim();
+  const total  = parseFloat(document.getElementById('mobManTotal')?.value)  || 0;
+  const adv    = parseFloat(document.getElementById('mobManAdv')?.value)    || 0;
+  const method = document.getElementById('mobManMethod')?.value || 'Cash';
+  const source = document.getElementById('mobManSource')?.value || 'walk_in';
+  const note   = document.getElementById('mobManNote')?.value   || '';
+  const due    = Math.max(0, total - adv);
+  const msgEl  = document.getElementById('mobManMsg');
+  const btn    = document.getElementById('mobManSaveBtn');
+  const cu     = window.currentUser;
+
+  // Validate
+  if(!date || !slot){ if(msgEl){msgEl.textContent='Please select date and time slot.';msgEl.style.display='block';} return; }
+  if(!name)          { if(msgEl){msgEl.textContent='Please enter customer name.';msgEl.style.display='block';} return; }
+  if(!phone||phone.length<10){ if(msgEl){msgEl.textContent='Please enter a valid phone number.';msgEl.style.display='block';} return; }
+
+  // Conflict check
+  const conflict = (window.allTurfBookings||[]).find(b=>b.date===date&&b.timeSlot===slot&&!['cancelled','no_show'].includes(b.status));
+  if(conflict){ if(msgEl){msgEl.textContent='⚠️ This slot is already booked!';msgEl.style.display='block';} return; }
+
+  btn.disabled=true; btn.textContent='Saving…';
+  try {
+    const refCode = 'MB-'+Math.random().toString(36).slice(2,8).toUpperCase();
+    await window.db.collection('bookings').add({
+      turfId:cu.id, turfName:cu.name,
+      date, timeSlot:slot,
+      customerName:name, phone,
+      total, advance:adv, due,
+      payMethod:method, source, note, refCode,
+      status:'manual',
+      bookedBy:cu.name,
+      createdAt:firebase.firestore.Timestamp.now()
+    });
+    window.toast?.('✅ Booking saved — '+refCode,'success');
+    window.logActivity?.('booking_created', `Booking created: ${name} · ${date} · ${slot}`);
+    closeMobManualSheet();
+    window.loadAllBookings?.();
+    // Switch to bookings page to see it
+    mobShowPage('bookings');
+    setTimeout(()=>window.mobFilterBookings?.('today'), 500);
+  } catch(e){
+    if(msgEl){msgEl.textContent='Error: '+e.message;msgEl.style.display='block';}
+  } finally {
+    btn.disabled=false; btn.textContent='Confirm Booking →';
+  }
+};
+
+// ── Mobile Slot Management Sheet ───────────────────────────
+let mobTempSlots = [];
+
+window.openMobSlotSheet = function() {
+  const sheet = document.getElementById('mobSlotMgmtSheet');
+  if(!sheet) return;
+  const allSlots = window.ALL_SLOTS || [];
+  const active   = window.currentSlots || allSlots;
+  mobTempSlots   = [...active];
+
+  const list = document.getElementById('mobSlotMgmtList');
+  if(list) {
+    list.innerHTML = allSlots.map(s => {
+      const isOn = active.includes(s);
+      return `
+        <div class="mob-slot-mgmt-row">
+          <div class="mob-slot-mgmt-time">${s}</div>
+          <label class="mob-slot-toggle">
+            <input type="checkbox" ${isOn?'checked':''} onchange="mobToggleSlot('${s}',this.checked)"
+              style="opacity:0;width:0;height:0;position:absolute">
+            <div class="mob-slot-toggle-track" style="position:absolute;inset:0;border-radius:24px;background:${isOn?'var(--green-dark)':'#3a1a1a'};transition:.3s"></div>
+            <div class="mob-slot-toggle-thumb" style="position:absolute;width:18px;height:18px;background:${isOn?'#000':'#e74c3c'};border-radius:50%;top:3px;left:${isOn?'23px':'3px'};transition:.3s"></div>
+          </label>
+        </div>`;
+    }).join('');
+  }
+  sheet.classList.add('open');
+};
+
+window.closeMobSlotSheet = function() {
+  document.getElementById('mobSlotMgmtSheet')?.classList.remove('open');
+};
+
+window.mobToggleSlot = function(slot, isOn) {
+  if(isOn && !mobTempSlots.includes(slot)) mobTempSlots.push(slot);
+  else if(!isOn) mobTempSlots = mobTempSlots.filter(s=>s!==slot);
+};
+
+window.saveMobSlots = async function() {
+  const cu = window.currentUser;
+  if(!cu) return;
+  try {
+    await window.db.collection('prices').doc(cu.id).update({ availableSlots: mobTempSlots });
+    window.currentSlots = [...mobTempSlots];
+    window.toast?.('✅ Slots updated','success');
+    window.logActivity?.('slot_blocked', `Slot configuration updated`);
+    closeMobSlotSheet();
+  } catch(e){ window.toast?.('Error: '+e.message,'error'); }
+};
+
+// ── Enhanced mobRenderHome — bKash section ──────────────────
+const _origMobRenderHome = window.mobRenderHome;
+window.mobRenderHome = function() {
+  if(_origMobRenderHome) _origMobRenderHome();
+
+  // Add bKash badge to bookings nav if pending exist
+  const bkash = (window.allTurfBookings||[]).filter(b=>b.status==='pending_payment');
+  const navBk = document.getElementById('mobNavBookings');
+  if(navBk) {
+    let badge = navBk.querySelector('.mob-nav-badge');
+    if(bkash.length) {
+      if(!badge){ badge=document.createElement('div'); badge.className='mob-nav-badge'; navBk.appendChild(badge); }
+      badge.textContent = bkash.length > 9 ? '9+' : bkash.length;
+      badge.style.display='flex';
+    } else if(badge) badge.style.display='none';
+  }
+};
+
+// ── Expose goManualToday for FAB walk-in ───────────────────
+window.goManualToday = function() {
+  openMobManualSheet(null, null, 'Walk-in Booking');
+};
+
+// ── Hook into loadAllBookings to refresh mobile ─────────────
+const _origLoadMob = window.loadAllBookings;
+window.loadAllBookings = function() {
+  if(_origLoadMob) return _origLoadMob();
 };
 </script>
 
